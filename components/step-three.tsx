@@ -5,25 +5,24 @@ import type { StepProps } from "@/types/booking"
 
 export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   const serviceTypes = [
-
     {
-      id: "repair",
-      title: "Repair Inspection",
-      description: "Professional Roof repair and maintenance",
-      icon: Wrench,
-      color: "green",
-    },
-    {
-      id: "replacement",
-      title: "Replacement Inspection",
-      description: "Professional Roof replacement service",
+      id: "inspection",
+      title: "Roof Inspection",
+      description: "Thorough assessment of your roof's condition",
       icon: HomeIcon,
       color: "green",
     },
     {
-      id: "tarping",
-      title: "Emergency Tarping",
-      description: "Hourly rate of $300.00 with $99.00 dispatch fee",
+      id: "repair",
+      title: "Repair Service",
+      description: "Professional Roof repair service",
+      icon: Wrench,
+      color: "green",
+    },
+    {
+      id: "install_replace",
+      title: "Install/Replace",
+      description: "Expert installation or replacement of your roof",
       icon: ShieldAlert,
       color: "green"
     },

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
+import { useSearchParams } from "next/navigation"
+import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -12,6 +14,10 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
+
+  const searchParams = useSearchParams()
+  const COMPANY_UID = searchParams.get("company_uid") || ""
+  console.log("Company UID from URL:", COMPANY_UID)
 
   const generateCalendarDates = () => {
     const dates = []
@@ -35,11 +41,15 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`https://internalwf.zuper.co/webhook/02d1f4ac-7be0-44f8-a7e9-549104cc82fd?date=${date}&serviceType=${formData.serviceType}`)
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
       const data: ApiResponse = await response.json()
+      if(!data.success) {
+        throw new Error(data.message || 'Failed to fetch availability data')
+      }
+
       setAvailabilityData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -123,7 +133,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
 
   // Helper function to transform API data to UserSlot format
   const transformApiDataToUserSlots = (): UserSlot[] => {
-    if (!availabilityData) return []
+    if (!availabilityData?.data) return []
     
     const selectedDateData = availabilityData.data.availability.find(
       (item) => item.date === formData.selectedDate

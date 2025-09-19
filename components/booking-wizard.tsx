@@ -10,6 +10,8 @@ import StepTwo from "./step-two"
 import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
+import { useSearchParams } from "next/navigation"
+import { CREATE_BOOKING_WEBHOOK } from "@/configs"
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -34,6 +36,9 @@ export default function BookingWizard() {
     start_time: "",
     end_time: "",
   })
+
+  const searchParams = useSearchParams()
+  const COMPANY_UID = searchParams.get("company_uid") || ""
 
   const handleUpdateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -74,7 +79,7 @@ export default function BookingWizard() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('https://internalwf.zuper.co/webhook/c1e41bb4-fcfd-4d3d-a8c1-d1f5ee754f37', {
+      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

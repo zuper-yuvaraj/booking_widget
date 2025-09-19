@@ -6,6 +6,7 @@ import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
+import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
@@ -132,9 +133,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from Maven Roofing. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
               <a 
-                href="https://www.mavenroof.com/terms-and-conditions/" 
+                href={TERMS_OF_SERVICE} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"
@@ -143,7 +144,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               </a>{" "}
               and{" "}
               <a 
-                href="https://www.mavenroof.com/privacy-policy/" 
+                href={PRIVACY_POLICY}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"

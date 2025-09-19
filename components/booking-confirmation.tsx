@@ -2,6 +2,7 @@
 
 import { PartyPopper } from "lucide-react"
 import type { FormData } from "@/types/booking"
+import { COMPANY_NAME } from "@/configs"
 
 interface BookingConfirmationProps {
   formData: FormData
@@ -31,7 +32,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           <PartyPopper className="w-10 h-10 text-green-600" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-4">
-          Thanks for booking with Maven!
+          Thanks for booking with {COMPANY_NAME}!
         </h1>
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
