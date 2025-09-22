@@ -10,8 +10,8 @@ import StepTwo from "./step-two"
 import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
-import { useSearchParams } from "next/navigation"
 import { CREATE_BOOKING_WEBHOOK } from "@/configs"
+import {  useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -37,7 +37,7 @@ export default function BookingWizard() {
     end_time: "",
   })
 
-  const searchParams = useSearchParams()
+  const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
   const handleUpdateFormData = (field: keyof FormData, value: string) => {

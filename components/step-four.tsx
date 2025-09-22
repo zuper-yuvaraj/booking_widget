@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { useSearchParams } from "next/navigation"
 import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
+import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -15,7 +15,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
 
-  const searchParams = useSearchParams()
+  const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
   console.log("Company UID from URL:", COMPANY_UID)
 
