@@ -16,7 +16,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
 
   const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || ""
+  const COMPANY_UID = searchParams.get("company_uid") || "38938420-a072-4f21-a6e5-a107960efda1"
   console.log("Company UID from URL:", COMPANY_UID)
 
   const generateCalendarDates = () => {

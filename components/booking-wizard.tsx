@@ -35,12 +35,13 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    marketingConsent: false,
   })
 
   const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || ""
+  const COMPANY_UID = searchParams.get("company_uid") || "38938420-a072-4f21-a6e5-a107960efda1"
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -49,11 +50,12 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
+    const hasConsent = formData.marketingConsent === true
     
-    return hasRequiredFields && isPhoneValid && isEmailValid
+    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
   }
 
   const isStep3Valid = () => {

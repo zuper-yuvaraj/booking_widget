@@ -45,7 +45,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              First Name <span className="text-red-500">*</span>
+            </label>
             <input
               ref={firstNameInputRef}
               type="text"
@@ -72,7 +74,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number
+            Phone Number <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -101,7 +103,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email
+            Email <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
