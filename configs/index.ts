@@ -1,5 +1,5 @@
-export const COMPANY_NAME = "Sun Elevated"
+export const COMPANY_NAME = "Elite Roofing"
 export const TERMS_OF_SERVICE = 'https://www.zuper.co/terms-conditions'
 export const PRIVACY_POLICY = 'https://www.zuper.co/privacy-policy'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/dacd47cf-9b29-4284-b556-9f501b3d87b2"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/afe11b89-13b1-42f6-a8d8-507fc8b93479"
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/1b7f03b0-d340-4529-a5a7-97d5e0890510"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/abafa55b-e62b-4208-a940-09d26721a885"

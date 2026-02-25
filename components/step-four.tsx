@@ -16,7 +16,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
 
   const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || "38938420-a072-4f21-a6e5-a107960efda1"
+  const COMPANY_UID = searchParams.get("company_uid") || "23d81993-b744-4197-b6a7-c6be795aa1fd"
   console.log("Company UID from URL:", COMPANY_UID)
 
   const generateCalendarDates = () => {
@@ -27,9 +27,11 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
       // Skip Sundays (day 0)
-      if (date.getDay() !== 0) {
+      // if (date.getDay() !== 0) {
+      //   dates.push(date)
+      // }
         dates.push(date)
-      }
+
       i++
     }
     return dates
@@ -131,6 +133,12 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     })
   }
 
+const formatDateOnly = (date: Date) => {
+  return date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    timeZone: "America/New_York",
+  });
+};
   // Helper function to transform API data to UserSlot format
   const transformApiDataToUserSlots = (): UserSlot[] => {
     if (!availabilityData?.data) return []
@@ -232,7 +240,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                 }`}
               >
                 <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
+                <div className="text-lg font-bold">{formatDateOnly(date)}</div>
               </button>
             )
           })}

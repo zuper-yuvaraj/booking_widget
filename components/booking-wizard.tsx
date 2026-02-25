@@ -39,7 +39,7 @@ export default function BookingWizard() {
   })
 
   const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || "38938420-a072-4f21-a6e5-a107960efda1"
+  const COMPANY_UID = searchParams.get("company_uid") || "23d81993-b744-4197-b6a7-c6be795aa1fd"
 
   const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
