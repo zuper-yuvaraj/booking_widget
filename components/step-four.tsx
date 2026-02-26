@@ -129,14 +129,14 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       weekday: "short",
       day: "numeric",
       month: "short",
-      timeZone: 'America/New_York'
+      timeZone:TIME_ZONE
     })
   }
 
 const formatDateOnly = (date: Date) => {
   return date.toLocaleDateString("en-US", {
     day: "2-digit",
-    timeZone: "America/New_York",
+    timeZone:TIME_ZONE,
   });
 };
   // Helper function to transform API data to UserSlot format
