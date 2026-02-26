@@ -2,7 +2,7 @@
 
 import { PartyPopper } from "lucide-react"
 import type { FormData } from "@/types/booking"
-import { COMPANY_NAME } from "@/configs"
+import { COMPANY_NAME,TIME_ZONE } from "@/configs"
 
 interface BookingConfirmationProps {
   formData: FormData
@@ -10,15 +10,17 @@ interface BookingConfirmationProps {
 
 export default function BookingConfirmation({ formData }: BookingConfirmationProps) {
   const formatDate = (dateString: string) => {
-    dateString = dateString + " 00:00:00"
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: 'America/New_York'
-    })
+    // dateString = dateString + " 00:00:00"
+    // const date = new Date(dateString)
+
+    return dateString
+    // return date.toLocaleDateString("en-US", {
+    //   weekday: "long",
+    //   year: "numeric",
+    //   month: "long",
+    //   day: "numeric",
+    //   timeZone: TIME_ZONE
+    // })
   }
 
   const formatTime = (timeSlot: string) => {
