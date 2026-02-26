@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID } from "@/configs"
+import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
@@ -129,14 +129,14 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       weekday: "short",
       day: "numeric",
       month: "short",
-      timeZone: 'America/New_York'
+      timeZone: TIME_ZONE
     })
   }
 
 const formatDateOnly = (date: Date) => {
   return date.toLocaleDateString("en-US", {
     day: "2-digit",
-    timeZone: "America/New_York",
+    timeZone: TIME_ZONE
   });
 };
   // Helper function to transform API data to UserSlot format
@@ -182,12 +182,12 @@ const formatDateOnly = (date: Date) => {
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true,
-        timeZone: 'America/New_York'
+        timeZone: TIME_ZONE
       })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true,
-        timeZone: 'America/New_York'
+        timeZone: TIME_ZONE
       })}`
       
       slot.users.forEach((userId: string) => {
