@@ -17,7 +17,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
       year: "numeric",
       month: "long",
       day: "numeric",
-      timeZone: 'America/Denver'
+      // timeZone: 'America/Denver'
     })
   }
 

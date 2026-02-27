@@ -61,7 +61,8 @@ export default function BookingWizard() {
   }
 
   const isStep4Valid = () => {
-    return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
+    // return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
+    return !!(formData.selectedDate && formData.selectedSlot)
   }
 
   const nextStep = () => {
