@@ -15,7 +15,8 @@ export interface FormData {
   selectedSlot: string
   start_time: string
   end_time: string
-  selectedUser: string
+  selectedUser: string,
+  preferredDate: string,
   marketingConsent?: boolean
 }
 

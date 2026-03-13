@@ -35,6 +35,7 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    preferredDate:"",
     marketingConsent: false,
   })
 
@@ -50,11 +51,11 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
-    
+
     return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
   }
 
@@ -78,17 +79,40 @@ export default function BookingWizard() {
     }
   }
 
+  const buildBookingPayload = () => ({
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    phone: formData.phone,
+    email: formData.email,
+    serviceType: formData.serviceType,
+    address: formData.address,
+    street: formData.street,
+    city: formData.city,
+    state: formData.state,
+    zipcode: formData.zipcode,
+    latitude: formData.latitude,
+    longitude: formData.longitude,
+    selectedDate: formData.selectedDate,
+    selectedSlot: formData.selectedSlot,
+    start_time: formData.start_time,
+    end_time: formData.end_time,
+    selectedUser: formData.selectedUser,
+    preferredDate: formData.preferredDate,
+    marketingConsent: formData.marketingConsent,
+  })
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
+      const payload = buildBookingPayload()
       const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload),
       })
-      
+
       if (!response.ok) {
         console.error('Failed to submit booking:', response.status, response.statusText)
       } else {
@@ -106,7 +130,7 @@ export default function BookingWizard() {
     const stepProps = {
       formData,
       onUpdateFormData: handleUpdateFormData,
-      onNext: nextStep,
+      onNext: currentStep === 2 ? handleSubmit : nextStep,
       onPrev: prevStep,
       isValid: false,
     }
@@ -174,17 +198,27 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep === 2 ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isStep2Valid() || isSubmitting}
+                  className={`flex items-center px-6 py-2 rounded-md transition-colors ${
+                    !isStep2Valid() || isSubmitting
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-primary/80"
+                  }`}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </button>
+              ) : currentStep < 4 ? (
                 <button
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
                     (currentStep === 3 && !isStep3Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
                     (currentStep === 3 && !isStep3Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
