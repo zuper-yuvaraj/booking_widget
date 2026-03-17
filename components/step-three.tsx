@@ -19,13 +19,13 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
       icon: Wrench,
       color: "green",
     },
-    {
-      id: "install_replace",
-      title: "Install/Replace",
-      description: "Expert installation or replacement of your roof",
-      icon: ShieldAlert,
-      color: "green"
-    },
+    // {
+    //   id: "install_replace",
+    //   title: "Install/Replace",
+    //   description: "Expert installation or replacement of your roof",
+    //   icon: ShieldAlert,
+    //   color: "green"
+    // },
   ]
 
   const handleServiceSelect = (serviceType: string) => {
