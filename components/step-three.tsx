@@ -1,31 +1,120 @@
-"use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
+
+import {
+  FileText,
+  Droplets,
+  Wrench,
+  Fan,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Wind,
+  Flame,
+  Activity,
+} from "lucide-react"
 import type { StepProps } from "@/types/booking"
 
 export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   const serviceTypes = [
     {
-      id: "inspection",
-      title: "Roof Inspection",
-      description: "Thorough assessment of your roof's condition",
-      icon: HomeIcon,
+      id: "New System Exact Quote", //get_system_quote
+      title: "Get a New System Exact Quote",
+      description: "",
+      icon: FileText,
       color: "green",
     },
     {
-      id: "repair",
-      title: "Repair Service",
-      description: "Professional Roof repair service",
+      id: "Tankless WH - Maintenance",
+      title: "Tankless Water Heater Tune-Up",
+      description: "",
+      icon: Droplets,
+      color: "green",
+    },
+    {
+      id: "Tankless WH - Repair",
+      title: "Tankless Water Heater Repair",
+      description: "",
       icon: Wrench,
       color: "green",
     },
-    // {
-    //   id: "install_replace",
-    //   title: "Install/Replace",
-    //   description: "Expert installation or replacement of your roof",
-    //   icon: ShieldAlert,
-    //   color: "green"
-    // },
+    {
+      id: "WaterHeater(Tank) - Maint",
+      title: "Tank Water Heater Tune-Up",
+      description: "",
+      icon: Droplets,
+      color: "green",
+    },
+    {
+      id: "WaterHeater(Tank) - Repair",
+      title: "Tank Water Heater Repair",
+      description: "",
+      icon: Wrench,
+      color: "green",
+    },
+    {
+      id: "DuctlessMiniSplit-Maint/TU",
+      title: "Ductless Mini-Split Tune-Up",
+      description: "",
+      icon: Fan,
+      color: "green",
+    },
+    {
+      id: "DuctlessMiniSplit - Repair",
+      title: "Ductless Mini-Split Repair",
+      description: "",
+      icon: Wrench,
+      color: "green",
+    },
+    {
+      id: "Heat Pump - Maint/TuneUp",
+      title: "Heat Pump Tune-Up",
+      description: "",
+      icon: ThermometerSun,
+      color: "green",
+    },
+    {
+      id: "Heat Pump - Repair",
+      title: "Heat Pump Repair",
+      description: "",
+      icon: ThermometerSnowflake,
+      color: "green",
+    },
+    {
+      id: "Air-Con - Maint/Tune Up",
+      title: "Air Conditioner Tune-Up",
+      description: "",
+      icon: Wind,
+      color: "green",
+    },
+    {
+      id: "Air-Con - Repair",
+      title: "Air Conditioner Repair",
+      description: "",
+      icon: Wind,
+      color: "green",
+    },
+    {
+      id: "Furnace - Maint/Tune-Up",
+      title: "Furnace Tune-Up",
+      description: "",
+      icon: Flame,
+      color: "green",
+    },
+    {
+      id: "Furnace - Repair",
+      title: "Furnace Repair",
+      description: "",
+      icon: Flame,
+      color: "green",
+    },
+    {
+      id: "Site visit/ Misc. Quote",
+      title: "System Diagnostic",
+      description: "",
+      icon: Activity,
+      color: "green",
+    },
+    
+   
   ]
 
   const handleServiceSelect = (serviceType: string) => {

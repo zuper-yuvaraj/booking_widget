@@ -26,10 +26,13 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     while (dates.length < 7) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
+      console.log("Generated date:", date, "Day of week:", date.getDay())
       // Skip Sundays (day 0)
-      // if (date.getDay() !== 0) {
-      //   dates.push(date)
-      // }
+      if (date.getDay() == 0 || date.getDay() == 6) {
+        // dates.push(date)
+        i++
+        continue;
+      }
         dates.push(date)
 
       i++
