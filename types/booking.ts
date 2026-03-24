@@ -3,6 +3,7 @@ export interface FormData {
   lastName: string
   phone: string
   email: string
+  description: string
   serviceType: string
   address: string
   street: string
