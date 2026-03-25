@@ -1,5 +1,5 @@
 const nextConfig = {
-  // output: 'export',  // Disabled for dev server - enable for static export builds
+  output: 'export',  // Disabled for dev server - enable for static export builds
   // basePath: '/sobo_telecom',  // Disabled for dev server
   // assetPrefix: '/sobo_telecom',  // Disabled for dev server
   trailingSlash: true,
