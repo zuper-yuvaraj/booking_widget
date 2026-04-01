@@ -37,12 +37,14 @@ export default function BookingWizard() {
     end_time: "",
     preferredDate:"",
     marketingConsent: false,
+    custom_fields: {},
+    description: "",
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
 
-  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean | Record<string, string>) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -99,6 +101,8 @@ export default function BookingWizard() {
     selectedUser: formData.selectedUser,
     preferredDate: formData.preferredDate,
     marketingConsent: formData.marketingConsent,
+    custom_fields: formData.custom_fields,
+    description: formData.description,
   })
 
   const handleSubmit = async () => {

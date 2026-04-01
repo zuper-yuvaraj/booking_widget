@@ -18,6 +18,8 @@ export interface FormData {
   selectedUser: string,
   preferredDate: string,
   marketingConsent?: boolean
+  custom_fields: Record<string, string>
+  description: string
 }
 
 export interface UserSlot {
@@ -81,7 +83,7 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: string | boolean | Record<string, string>) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean
