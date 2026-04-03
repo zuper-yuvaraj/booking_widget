@@ -50,11 +50,11 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.serviceType)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
-    
+
     return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
   }
 
@@ -67,13 +67,17 @@ export default function BookingWizard() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep === 2) {
+      setCurrentStep(4)
+    } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
   }
 
   const prevStep = () => {
-    if (currentStep > 1) {
+    if (currentStep === 4) {
+      setCurrentStep(2)
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
   }
@@ -81,7 +85,7 @@ export default function BookingWizard() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
+      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}&serviceType=${encodeURIComponent(formData.serviceType)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
