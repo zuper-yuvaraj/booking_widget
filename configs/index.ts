@@ -1,6 +1,6 @@
 export const COMPANY_NAME = "Sobo Telecom"
-export const TERMS_OF_SERVICE = 'https://sobotelecom.com/terms.html'
-export const PRIVACY_POLICY = 'https://sobotelecom.com/privacy.html'
+export const TERMS_OF_SERVICE = 'https://sobotelecom.com/terms'
+export const PRIVACY_POLICY = 'https://sobotelecom.com/privacy'
 export const SERVICE_TYPE_LABELS: Record<string, string> = {
   quantum_fiber_repair: "Quantum Fiber Repair",
   sterling_ranch_ftth: "Sterling Ranch FTTH",
