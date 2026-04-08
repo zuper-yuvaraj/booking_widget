@@ -17,6 +17,7 @@ export interface FormData {
   end_time: string
   selectedUser: string,
   preferredDate: string,
+  preferredTimeSlot: string,
   marketingConsent?: boolean
   custom_fields: Record<string, string>
   description: string

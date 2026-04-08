@@ -1,6 +1,6 @@
 "use client"
 
-import { User, ChevronDown } from "lucide-react"
+import { User, ChevronDown, CalendarDays } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
@@ -12,77 +12,30 @@ const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
 const labelClass = "block text-sm font-medium text-gray-700 mb-2"
 
 const SERVICES = [
-  "Drone Moss Treatment",
-  "Roof Replacement",
-  "Roof Installation (New Construction)",
+  "Residential Roofing",
+  "Commercial Roofing",
+  "Commercial Roof Maintenance",
+  "Tile Roofing",
+  "Shingle Roofing",
+  "Foam Roofing",
+  "Flat Roofing",
   "Roof Repair",
-  "Roof Cleaning",
-  "Roof Inspection",
-  "Siding",
+  "Roof Replacement",
+  "Insurance Claims Management",
+  "Storm Damage Roof Inspection",
+  "Residential Roof Inspection",
+  "Commercial Roof Inspection",
+  "Residential real-estate presale roof inspection"
 ]
 
 const SERVICE_CHILD_KEYS: Record<string, string[]> = {
-  "Drone Moss Treatment": [
-    "Are you within 2 miles of an Airport or Military Base?",
-    'Is moss thicker than 1/2”?',
-    "Pitch of roof?",
-  ],
-  "Roof Replacement": [
-    "Age of current roof?",
-    "Approx. square footage?",
-    "Desired new roof material?",
-  ],
-  "Roof Installation (New Construction)": [
-    "Are blueprints/plans available?",
-    "Expected date of completion?",
-    "Will we be working with any sub-contractors?",
-  ],
-  "Roof Repair": [
-    "Age of roof?",
-    "Any previous repairs?",
-    "Is the roof regularly cleaned and/or treated?",
-  ],
-  "Roof Cleaning": [
-    "Last time roof was cleaned?",
-    "Are there safety anchors installed currently?",
-    "Is there exterior access to water?",
-  ],
-  "Roof Inspection": [
-    "What is the inspection for?",
-    "Expected completion date",
-    "Will you need a report with photos, or just a proposal if damage/issues are present?",
-  ],
-  "Siding": [
-    "Current siding material?",
-    "Is the siding damaged?",
-    "What type of damage?",
-  ],
+ 
 }
 
 type FieldType = "yesno" | "text" | "date" | "textarea"
 
 const FIELD_TYPES: Record<string, FieldType> = {
-  "Are you within 2 miles of an Airport or Military Base?": "yesno",
-  'Is moss thicker than 1/2”?': "yesno",
-  "Pitch of roof?": "text",
-  "Age of current roof?": "text",
-  "Approx. square footage?": "text",
-  "Desired new roof material?": "text",
-  "Are blueprints/plans available?": "yesno",
-  "Expected date of completion?": "date",
-  "Will we be working with any sub-contractors?": "yesno",
-  "Age of roof?": "text",
-  "Any previous repairs?": "yesno",
-  "Is the roof regularly cleaned and/or treated?": "yesno",
-  "Last time roof was cleaned?": "text",
-  "Are there safety anchors installed currently?": "yesno",
-  "Is there exterior access to water?": "yesno",
-  "What is the inspection for?": "textarea",
-  "Expected completion date": "date",
-  "Will you need a report with photos, or just a proposal if damage/issues are present?": "yesno",
-  "Current siding material?": "text",
-  "Is the siding damaged?": "text",
-  "What type of damage?": "textarea",
+ 
 }
 
 function YesNoSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
@@ -158,6 +111,7 @@ function ServicesMultiSelect({ selected, onChange }: { selected: string[]; onCha
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
+  const dateInputRef = useRef<HTMLInputElement>(null)
   const cf = formData.custom_fields || {}
   const selectedServices = cf["SERVICES"]
     ? cf["SERVICES"].split(",").map(s => s.trim()).filter(Boolean)
@@ -329,13 +283,48 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           <label className={labelClass}>
             Preferred Date <span className="text-red-500">*</span>
           </label>
+          <button
+            type="button"
+            onClick={() => dateInputRef.current?.showPicker()}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white flex items-center justify-between text-sm"
+          >
+            <span className={formData.preferredDate ? "text-gray-900" : "text-gray-400"}>
+              {formData.preferredDate
+                ? new Date(formData.preferredDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                : "Select a date"}
+            </span>
+            <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
+          </button>
           <input
+            ref={dateInputRef}
             type="date"
             value={formData.preferredDate}
             onChange={(e) => onUpdateFormData("preferredDate", e.target.value)}
             onKeyPress={handleKeyPress}
-            className={inputClass}
+            className="sr-only"
           />
+        </div>
+
+        {/* Preferred Time Slot */}
+        <div>
+          <label className={labelClass}>
+            Preferred Time Slot <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={formData.preferredTimeSlot}
+            onChange={(e) => onUpdateFormData("preferredTimeSlot", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select a time slot...</option>
+            {[
+              "8:00 AM - 10:00 AM",
+              "10:00 AM - 12:00 PM",
+              "12:00 PM - 2:00 PM",
+              "2:00 PM - 4:00 PM",
+            ].map((slot) => (
+              <option key={slot} value={slot}>{slot}</option>
+            ))}
+          </select>
         </div>
 
         {/* Notes */}

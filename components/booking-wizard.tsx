@@ -36,6 +36,7 @@ export default function BookingWizard() {
     start_time: "",
     end_time: "",
     preferredDate:"",
+    preferredTimeSlot: "",
     marketingConsent: false,
     custom_fields: {},
     description: "",
@@ -81,29 +82,43 @@ export default function BookingWizard() {
     }
   }
 
-  const buildBookingPayload = () => ({
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    phone: formData.phone,
-    email: formData.email,
-    serviceType: formData.serviceType,
-    address: formData.address,
-    street: formData.street,
-    city: formData.city,
-    state: formData.state,
-    zipcode: formData.zipcode,
-    latitude: formData.latitude,
-    longitude: formData.longitude,
-    selectedDate: formData.selectedDate,
-    selectedSlot: formData.selectedSlot,
-    start_time: formData.start_time,
-    end_time: formData.end_time,
-    selectedUser: formData.selectedUser,
-    preferredDate: formData.preferredDate,
-    marketingConsent: formData.marketingConsent,
-    custom_fields: formData.custom_fields,
-    description: formData.description,
-  })
+  const buildBookingPayload = () => {
+    // Parse preferredTimeSlot "8:00 AM - 10:00 AM" into start/end appended to preferredDate
+    let selectedSlot = formData.selectedSlot
+    let start_time = formData.start_time
+    let end_time = formData.end_time
+
+    if (formData.preferredTimeSlot) {
+      const [startPart, endPart] = formData.preferredTimeSlot.split(" - ")
+      selectedSlot = formData.preferredTimeSlot
+      start_time = `${formData.preferredDate} ${startPart.trim()}`
+      end_time = `${formData.preferredDate} ${endPart.trim()}`
+    }
+
+    return {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      phone: formData.phone,
+      email: formData.email,
+      serviceType: formData.serviceType,
+      address: formData.address,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      zipcode: formData.zipcode,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      selectedDate: formData.selectedDate,
+      selectedSlot,
+      start_time,
+      end_time,
+      selectedUser: formData.selectedUser,
+      preferredDate: formData.preferredDate,
+      marketingConsent: formData.marketingConsent,
+      custom_fields: formData.custom_fields,
+      description: formData.description,
+    }
+  }
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
