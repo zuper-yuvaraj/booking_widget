@@ -58,8 +58,10 @@ export default function BookingWizard() {
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
+    const cf = formData.custom_fields || {}
+    const otherInsuranceValid = cf["Insurance"] === "Other" ? !!cf["Other Insurance"] : true
 
-    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
+    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent && otherInsuranceValid
   }
 
   const isStep3Valid = () => {
@@ -83,16 +85,14 @@ export default function BookingWizard() {
   }
 
   const buildBookingPayload = () => {
-    // Parse preferredTimeSlot "8:00 AM - 10:00 AM" into start/end appended to preferredDate
-    let selectedSlot = formData.selectedSlot
-    let start_time = formData.start_time
-    let end_time = formData.end_time
-
-    if (formData.preferredTimeSlot) {
-      const [startPart, endPart] = formData.preferredTimeSlot.split(" - ")
-      selectedSlot = formData.preferredTimeSlot
-      start_time = `${formData.preferredDate} ${startPart.trim()}`
-      end_time = `${formData.preferredDate} ${endPart.trim()}`
+    const cf = formData.custom_fields || {}
+    const custom_fields = {
+      ...cf,
+      "How old is the roof?": cf["How old is the roof?"] || "",
+      "Current Roof type?": cf["Current Roof type?"] || "",
+      "Desired Roof type?": cf["Desired Roof type?"] || "",
+      "Insurance": cf["Insurance"] || "",
+      "Other Insurance": cf["Other Insurance"] || "",
     }
 
     return {
@@ -109,13 +109,13 @@ export default function BookingWizard() {
       latitude: formData.latitude,
       longitude: formData.longitude,
       selectedDate: formData.selectedDate,
-      selectedSlot,
-      start_time,
-      end_time,
+      selectedSlot: formData.selectedSlot,
+      start_time: formData.start_time,
+      end_time: formData.end_time,
       selectedUser: formData.selectedUser,
       preferredDate: formData.preferredDate,
       marketingConsent: formData.marketingConsent,
-      custom_fields: formData.custom_fields,
+      custom_fields,
       description: formData.description,
     }
   }

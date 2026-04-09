@@ -1,9 +1,9 @@
-export const COMPANY_NAME = "Elevate Roofing Pros"
-export const TERMS_OF_SERVICE = 'https://calendly.com/legal/definitions'
-export const PRIVACY_POLICY = 'https://calendly.com/legal/privacy-notice'
+export const COMPANY_NAME = "Preferred Roofing"
+export const TERMS_OF_SERVICE = 'https://preferredroofing.org/terms-and-conditions/'
+export const PRIVACY_POLICY = 'https://preferredroofing.org/privacy-policy/'
 export const ASSISTED_SCHEDULING_WEBHOOK = ""
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/0f4af100-30f9-4f53-8c0b-938f6fb5cfa7"
-export const COMPANY_UUID = "404429d9-3bc0-42a1-932c-310d482bcd51"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/ebb6306d-b36e-4247-a367-f25a1ba0ca48"
+export const COMPANY_UUID = "5f072ae4-e6a7-449c-b48b-c0aad2c7cc62"
 export const TIME_ZONE = "America/Los_Angeles"
 
 

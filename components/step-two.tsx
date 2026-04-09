@@ -1,7 +1,7 @@
 "use client"
 
-import { User, ChevronDown, CalendarDays } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { User, CalendarDays } from "lucide-react"
+import { useEffect, useRef } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
@@ -11,111 +11,21 @@ import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
 const labelClass = "block text-sm font-medium text-gray-700 mb-2"
 
-const SERVICES = [
-  "Residential Roofing",
-  "Commercial Roofing",
-  "Commercial Roof Maintenance",
-  "Tile Roofing",
-  "Shingle Roofing",
-  "Foam Roofing",
-  "Flat Roofing",
-  "Roof Repair",
-  "Roof Replacement",
-  "Insurance Claims Management",
-  "Storm Damage Roof Inspection",
-  "Residential Roof Inspection",
-  "Commercial Roof Inspection",
-  "Residential real-estate presale roof inspection"
+const INSURANCE_OPTIONS = [
+  "Alfa",
+  "Allstate",
+  "Country Financial",
+  "State Farm",
+  "Farmers",
+  "Travelers",
+  "USAA",
+  "Other",
 ]
-
-const SERVICE_CHILD_KEYS: Record<string, string[]> = {
- 
-}
-
-type FieldType = "yesno" | "text" | "date" | "textarea"
-
-const FIELD_TYPES: Record<string, FieldType> = {
- 
-}
-
-function YesNoSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={inputClass}
-      aria-label={label}
-    >
-      <option value="">Select...</option>
-      <option value="Yes">Yes</option>
-      <option value="No">No</option>
-    </select>
-  )
-}
-
-function ServicesMultiSelect({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
-
-  const toggle = (service: string) => {
-    if (selected.includes(service)) {
-      onChange(selected.filter(s => s !== service))
-    } else {
-      onChange([...selected, service])
-    }
-  }
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-left flex justify-between items-center bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none"
-      >
-        <span className={`text-sm truncate ${selected.length ? "text-gray-900" : "text-gray-400"}`}>
-          {selected.length ? selected.join(", ") : "Select services..."}
-        </span>
-        <ChevronDown className={`w-4 h-4 ml-2 shrink-0 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-      </button>
-      {isOpen && (
-        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-          {SERVICES.map(service => (
-            <label
-              key={service}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(service)}
-                onChange={() => toggle(service)}
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              />
-              {service}
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
   const dateInputRef = useRef<HTMLInputElement>(null)
   const cf = formData.custom_fields || {}
-  const selectedServices = cf["SERVICES"]
-    ? cf["SERVICES"].split(",").map(s => s.trim()).filter(Boolean)
-    : []
 
   useEffect(() => {
     if (firstNameInputRef.current) {
@@ -135,55 +45,6 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
   const updateCustomField = (key: string, value: string) => {
     onUpdateFormData("custom_fields", { ...cf, [key]: value })
-  }
-
-  const handleServicesChange = (services: string[]) => {
-    const updated = { ...cf }
-    // Clear child fields for any deselected services
-    SERVICES.forEach(service => {
-      if (!services.includes(service)) {
-        SERVICE_CHILD_KEYS[service]?.forEach(key => delete updated[key])
-      }
-    })
-    updated["SERVICES"] = services.join(", ")
-    onUpdateFormData("custom_fields", updated)
-  }
-
-  const renderSubField = (fieldKey: string) => {
-    const type = FIELD_TYPES[fieldKey] || "text"
-    const value = cf[fieldKey] || ""
-    return (
-      <div key={fieldKey}>
-        <label className={labelClass}>{fieldKey}</label>
-        {type === "yesno" && (
-          <YesNoSelect label={fieldKey} value={value} onChange={(v) => updateCustomField(fieldKey, v)} />
-        )}
-        {type === "date" && (
-          <input
-            type="date"
-            value={value}
-            onChange={(e) => updateCustomField(fieldKey, e.target.value)}
-            className={inputClass}
-          />
-        )}
-        {type === "textarea" && (
-          <textarea
-            value={value}
-            onChange={(e) => updateCustomField(fieldKey, e.target.value)}
-            className={`${inputClass} resize-none`}
-            rows={3}
-          />
-        )}
-        {type === "text" && (
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => updateCustomField(fieldKey, e.target.value)}
-            className={inputClass}
-          />
-        )}
-      </div>
-    )
   }
 
   const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : true
@@ -305,28 +166,6 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           />
         </div>
 
-        {/* Preferred Time Slot */}
-        <div>
-          <label className={labelClass}>
-            Preferred Time Slot <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={formData.preferredTimeSlot}
-            onChange={(e) => onUpdateFormData("preferredTimeSlot", e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Select a time slot...</option>
-            {[
-              "8:00 AM - 10:00 AM",
-              "10:00 AM - 12:00 PM",
-              "12:00 PM - 2:00 PM",
-              "2:00 PM - 4:00 PM",
-            ].map((slot) => (
-              <option key={slot} value={slot}>{slot}</option>
-            ))}
-          </select>
-        </div>
-
         {/* Notes */}
         <div>
           <label className={labelClass}>Notes</label>
@@ -339,15 +178,76 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           />
         </div>
 
-        {/* Services multi-select */}
+        {/* How old is the roof? */}
         <div>
-          <label className={labelClass}>SERVICES</label>
-          <ServicesMultiSelect selected={selectedServices} onChange={handleServicesChange} />
+          <label className={labelClass}>How old is the roof?</label>
+          <input
+            type="text"
+            value={cf["How old is the roof?"] || ""}
+            onChange={(e) => updateCustomField("How old is the roof?", e.target.value)}
+            className={inputClass}
+            placeholder="e.g. 10 years"
+          />
         </div>
 
-        {/* Sub-questions for each selected service */}
-        {selectedServices.flatMap(service =>
-          (SERVICE_CHILD_KEYS[service] || []).map(key => renderSubField(key))
+        {/* Current Roof type? */}
+        <div>
+          <label className={labelClass}>Current Roof type?</label>
+          <input
+            type="text"
+            value={cf["Current Roof type?"] || ""}
+            onChange={(e) => updateCustomField("Current Roof type?", e.target.value)}
+            className={inputClass}
+            placeholder="e.g. Shingle"
+          />
+        </div>
+
+        {/* Desired Roof type? */}
+        <div>
+          <label className={labelClass}>Desired Roof type?</label>
+          <input
+            type="text"
+            value={cf["Desired Roof type?"] || ""}
+            onChange={(e) => updateCustomField("Desired Roof type?", e.target.value)}
+            className={inputClass}
+            placeholder="e.g. Metal"
+          />
+        </div>
+
+        {/* Insurance */}
+        <div>
+          <label className={labelClass}>Insurance</label>
+          <select
+            value={cf["Insurance"] || ""}
+            onChange={(e) => {
+              updateCustomField("Insurance", e.target.value)
+              if (e.target.value !== "Other") {
+                updateCustomField("Other Insurance", "")
+              }
+            }}
+            className={inputClass}
+          >
+            <option value="">Select insurance...</option>
+            {INSURANCE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Other Insurance (conditional) */}
+        {cf["Insurance"] === "Other" && (
+          <div>
+            <label className={labelClass}>
+              Other Insurance <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={cf["Other Insurance"] || ""}
+              onChange={(e) => updateCustomField("Other Insurance", e.target.value)}
+              className={inputClass}
+              placeholder="Enter your insurance provider"
+            />
+          </div>
         )}
 
         {/* Consent */}
