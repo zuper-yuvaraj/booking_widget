@@ -220,10 +220,12 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           <select
             value={cf["Insurance"] || ""}
             onChange={(e) => {
-              updateCustomField("Insurance", e.target.value)
-              if (e.target.value !== "Other") {
-                updateCustomField("Other Insurance", "")
+              const newVal = e.target.value
+              const updates: Record<string, string> = { ...cf, Insurance: newVal }
+              if (newVal !== "Other") {
+                updates["Other Insurance"] = ""
               }
+              onUpdateFormData("custom_fields", updates)
             }}
             className={inputClass}
           >
