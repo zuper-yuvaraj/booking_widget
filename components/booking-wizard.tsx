@@ -59,10 +59,11 @@ export default function BookingWizard() {
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
     const cf = formData.custom_fields || {}
-    const hasInsurance = !!cf["Insurance"]
-    const otherInsuranceValid = cf["Insurance"] === "Other" ? !!cf["Other Insurance"] : true
+    const hasService = !!cf["Services"]
+    const hasDate = !!formData.preferredDate
+    const hasTimeSlot = !!formData.preferredTimeSlot
 
-    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent && hasInsurance && otherInsuranceValid
+    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent && hasService && hasDate && hasTimeSlot
   }
 
   const isStep3Valid = () => {
@@ -93,11 +94,7 @@ export default function BookingWizard() {
     const cf = formData.custom_fields || {}
     const custom_fields = {
       ...cf,
-      "How old is the roof?": cf["How old is the roof?"] || "",
-      "Current Roof type?": cf["Current Roof type?"] || "",
-      "Desired Roof type?": cf["Desired Roof type?"] || "",
-      "Insurance": cf["Insurance"] || "",
-      "Other Insurance": cf["Other Insurance"] || "",
+      "Services": cf["Services"] || "",
     }
 
     return {
@@ -163,7 +160,7 @@ export default function BookingWizard() {
       case 1:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
-        return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+        return <StepTwo {...stepProps} onNext={() => setIsBookingConfirmed(true)} isValid={isStep2Valid()} />
       case 3:
         return <StepThree {...stepProps} isValid={isStep3Valid()} />
       case 4:
@@ -222,16 +219,12 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep === 1 ? (
                 <button
                   onClick={nextStep}
-                  disabled={
-                    (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid())
-                  }
+                  disabled={!isStep1Valid()}
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
-                    (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid())
+                    !isStep1Valid()
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
@@ -239,6 +232,8 @@ export default function BookingWizard() {
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </button>
+              ) : currentStep === 2 ? (
+                <div />
               ) : (
                 <button
                   onClick={handleSubmit}
