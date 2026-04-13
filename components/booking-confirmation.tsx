@@ -68,10 +68,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         </div>
       </div>
 
-      <div className="text-gray-600">
-        <p className="mb-2">We'll send you a confirmation email and text message shortly.</p>
-        <p>Our team will contact you to confirm the appointment details.</p>
-      </div>
+    
     </div>
   )
 } 
