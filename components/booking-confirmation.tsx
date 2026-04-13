@@ -39,8 +39,8 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
-            {formatDate(formData.preferredDate)}
-            {formData.preferredTimeSlot && <>, {formatTime(formData.preferredTimeSlot)}</>}
+            {formatDate(formData.selectedDate)}
+            {formData.selectedSlot && <>, {formatTime(formData.selectedSlot)}</>}
           </span>
         </p>
       </div>
@@ -61,13 +61,13 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="font-medium">{formData.email}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Preferred Date:</span>
-            <span className="font-medium">{formatDate(formData.preferredDate)}</span>
+            <span className="text-gray-600">Date:</span>
+            <span className="font-medium">{formatDate(formData.selectedDate)}</span>
           </div>
-          {formData.preferredTimeSlot && (
+          {formData.selectedSlot && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Preferred Time Slot:</span>
-              <span className="font-medium">{formatTime(formData.preferredTimeSlot)}</span>
+              <span className="text-gray-600">Time Slot:</span>
+              <span className="font-medium">{formatTime(formData.selectedSlot)}</span>
             </div>
           )}
           <div className="flex justify-between">

@@ -26,12 +26,10 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     while (dates.length < 7) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
-      // Skip Sundays (day 0)
-      // if (date.getDay() !== 0) {
-      //   dates.push(date)
-      // }
+      const day = date.getDay()
+      if (day !== 0 && day !== 6) {
         dates.push(date)
-
+      }
       i++
     }
     return dates
@@ -43,7 +41,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&company_uid=${COMPANY_UID}`)
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
@@ -365,9 +363,6 @@ const formatDateOnly = (date: Date) => {
             </p>
             <p>
               <strong>Address:</strong> {formData.address}
-            </p>
-            <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
             </p>
             <p>
               <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}

@@ -1,6 +1,6 @@
 "use client"
 
-import { User, CalendarDays } from "lucide-react"
+import { User } from "lucide-react"
 import { useEffect, useRef } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
@@ -24,7 +24,6 @@ const INSURANCE_OPTIONS = [
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
-  const dateInputRef = useRef<HTMLInputElement>(null)
   const cf = formData.custom_fields || {}
 
   useEffect(() => {
@@ -139,33 +138,6 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           )}
         </div>
 
-        {/* Preferred Date */}
-        <div>
-          <label className={labelClass}>
-            Preferred Date <span className="text-red-500">*</span>
-          </label>
-          <button
-            type="button"
-            onClick={() => dateInputRef.current?.showPicker()}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white flex items-center justify-between text-sm"
-          >
-            <span className={formData.preferredDate ? "text-gray-900" : "text-gray-400"}>
-              {formData.preferredDate
-                ? new Date(formData.preferredDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-                : "Select a date"}
-            </span>
-            <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            value={formData.preferredDate}
-            onChange={(e) => onUpdateFormData("preferredDate", e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="sr-only"
-          />
-        </div>
-
         {/* Notes */}
         <div>
           <label className={labelClass}>Notes</label>
@@ -216,7 +188,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         {/* Insurance */}
         <div>
-          <label className={labelClass}>Insurance</label>
+          <label className={labelClass}>Insurance <span className="text-red-500">*</span></label>
           <select
             value={cf["Insurance"] || ""}
             onChange={(e) => {

@@ -54,14 +54,15 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
     const cf = formData.custom_fields || {}
+    const hasInsurance = !!cf["Insurance"]
     const otherInsuranceValid = cf["Insurance"] === "Other" ? !!cf["Other Insurance"] : true
 
-    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent && otherInsuranceValid
+    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent && hasInsurance && otherInsuranceValid
   }
 
   const isStep3Valid = () => {
@@ -73,13 +74,17 @@ export default function BookingWizard() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep === 2) {
+      setCurrentStep(4)
+    } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
   }
 
   const prevStep = () => {
-    if (currentStep > 1) {
+    if (currentStep === 4) {
+      setCurrentStep(2)
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
   }
@@ -149,7 +154,7 @@ export default function BookingWizard() {
     const stepProps = {
       formData,
       onUpdateFormData: handleUpdateFormData,
-      onNext: currentStep === 2 ? handleSubmit : nextStep,
+      onNext: nextStep,
       onPrev: prevStep,
       isValid: false,
     }
@@ -217,28 +222,16 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep === 2 ? (
-                <button
-                  onClick={handleSubmit}
-                  disabled={!isStep2Valid() || isSubmitting}
-                  className={`flex items-center px-6 py-2 rounded-md transition-colors ${
-                    !isStep2Valid() || isSubmitting
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/80"
-                  }`}
-                >
-                  {isSubmitting ? "Submitting..." : "Submit"}
-                </button>
-              ) : currentStep < 4 ? (
+              {currentStep < 4 ? (
                 <button
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
