@@ -1,9 +1,9 @@
-export const COMPANY_NAME = "Vivid Roofs"
-export const TERMS_OF_SERVICE = 'https://vividroofs.com/'
-export const PRIVACY_POLICY = 'https://vividroofs.com/'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/1206bccc-cc35-4b2e-a402-a79c1f1ad35b"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/70736afa-a193-4daa-b240-c99a42e792aa"
-export const COMPANY_UUID = "62a6651b-aae2-4f56-a438-5447f073641a"
-export const TIME_ZONE = "America/Phoenix"
+export const COMPANY_NAME = "Bayfront Roofing and Construction"
+export const TERMS_OF_SERVICE = 'https://bayfrontroofing.com/'
+export const PRIVACY_POLICY = 'https://bayfrontroofing.com/privacy-policy/'
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/7d7b3b38-d2b1-463b-a82a-c74521c17709"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/4e207376-e1cf-481c-a9b6-374819c043ce"
+export const COMPANY_UUID = "0a362961-c1cf-4619-be41-4f59d59708ce"
+export const TIME_ZONE = "America/Chicago"
 
 
