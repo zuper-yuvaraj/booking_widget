@@ -1,9 +1,9 @@
-export const COMPANY_NAME = "Bayfront Roofing and Construction"
-export const TERMS_OF_SERVICE = 'https://bayfrontroofing.com/'
-export const PRIVACY_POLICY = 'https://bayfrontroofing.com/privacy-policy/'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/7d7b3b38-d2b1-463b-a82a-c74521c17709"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/4e207376-e1cf-481c-a9b6-374819c043ce"
-export const COMPANY_UUID = "0a362961-c1cf-4619-be41-4f59d59708ce"
+export const COMPANY_NAME = "SC Roofing LLC"
+export const TERMS_OF_SERVICE = ''
+export const PRIVACY_POLICY = ''
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/5b66f69b-5a40-4847-ab65-77eb5a6b9857"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/3f55a937-2f31-4e19-a9fa-524aa08381e6"
+export const COMPANY_UUID = "c6915471-d2e6-40ff-95e3-8f5071739dac"
 export const TIME_ZONE = "America/Chicago"
 
 
