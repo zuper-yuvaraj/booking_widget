@@ -1,6 +1,6 @@
 "use client"
 
-import { User, ChevronDown, CalendarDays } from "lucide-react"
+import { User, ChevronDown } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
@@ -169,7 +169,6 @@ function IssueTypeMultiSelect({ selected, onChange }: { selected: string[]; onCh
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
-  const dateInputRef = useRef<HTMLInputElement>(null)
   const cf = formData.custom_fields || {}
   const selectedServices = cf["SERVICES"]
     ? cf["SERVICES"].split(",").map(s => s.trim()).filter(Boolean)
@@ -351,25 +350,12 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           <label className={labelClass}>
             Preferred Date <span className="text-red-500">*</span>
           </label>
-          <button
-            type="button"
-            onClick={() => dateInputRef.current?.showPicker()}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white flex items-center justify-between text-sm"
-          >
-            <span className={formData.preferredDate ? "text-gray-900" : "text-gray-400"}>
-              {formData.preferredDate
-                ? new Date(formData.preferredDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-                : "Select a date"}
-            </span>
-            <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-          </button>
           <input
-            ref={dateInputRef}
             type="date"
             value={formData.preferredDate}
             onChange={(e) => onUpdateFormData("preferredDate", e.target.value)}
             onKeyPress={handleKeyPress}
-            className="sr-only"
+            className={inputClass}
           />
         </div>
 
