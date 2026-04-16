@@ -4,6 +4,7 @@ export interface FormData {
   phone: string
   email: string
   serviceType: string
+  notes: string
   address: string
   street: string
   city: string

@@ -23,6 +23,7 @@ export default function BookingWizard() {
     phone: "",
     email: "",
     serviceType: "",
+    notes: "",
     address: "",
     street: "",
     city: "",
