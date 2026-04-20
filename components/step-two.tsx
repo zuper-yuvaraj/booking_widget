@@ -74,7 +74,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number <span className="text-red-500">*</span>
+            Mobile Phone Number <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -128,12 +128,27 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Preferred Date <span className="text-red-500">*</span>
           </label>
-          <input
-            type="date"
-            value={formData.preferredDate}
-            onChange={(e) => onUpdateFormData("preferredDate", e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          <div className="relative">
+            <input
+              type="date"
+              value={formData.preferredDate}
+              onChange={(e) => onUpdateFormData("preferredDate", e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            How can we help? <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => onUpdateFormData("description", e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+            placeholder="Tell us more about what you need..."
           />
         </div>
 

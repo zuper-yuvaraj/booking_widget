@@ -52,7 +52,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="font-medium">{formData.firstName} {formData.lastName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Phone:</span>
+            <span className="text-gray-600">Mobile Phone Number:</span>
             <span className="font-medium">{formData.phone}</span>
           </div>
           <div className="flex justify-between">

@@ -17,6 +17,7 @@ export interface FormData {
   end_time: string
   selectedUser: string,
   preferredDate: string,
+  description: string,
   marketingConsent?: boolean
 }
 

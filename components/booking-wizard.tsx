@@ -36,6 +36,7 @@ export default function BookingWizard() {
     start_time: "",
     end_time: "",
     preferredDate:"",
+    description: "",
     marketingConsent: false,
   })
 
@@ -51,7 +52,7 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate && formData.description)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
@@ -98,6 +99,7 @@ export default function BookingWizard() {
     end_time: formData.end_time,
     selectedUser: formData.selectedUser,
     preferredDate: formData.preferredDate,
+    description: formData.description,
     marketingConsent: formData.marketingConsent,
   })
 
