@@ -7,7 +7,6 @@ import { isValidEmail } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
-import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { CREATE_BOOKING_WEBHOOK } from "@/configs"
@@ -22,7 +21,8 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    description: "",
+    serviceType: "Inspection",
     address: "",
     street: "",
     city: "",
@@ -38,7 +38,7 @@ export default function BookingWizard() {
   })
 
   const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || ""
+  const COMPANY_UID = searchParams.get("company_uid") || "383c9b92-0ccb-408a-8cc5-7d9ee73eaafb"
 
   const handleUpdateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -49,23 +49,27 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
-    const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
-  }
+  const hasRequiredFields = !!(
+    formData.firstName &&
+    formData.lastName &&
+    formData.phone &&
+    formData.email
+  )
 
-  const isStep3Valid = () => {
-    return !!formData.serviceType
-  }
+  const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
+  const isEmailValid = formData.email ? isValidEmail(formData.email) : false
+  const isConsentGiven = formData.marketingConsent === true
+
+  return hasRequiredFields && isPhoneValid && isEmailValid && isConsentGiven
+}
+
 
   const isStep4Valid = () => {
     return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -77,26 +81,37 @@ export default function BookingWizard() {
   }
 
   const handleSubmit = async () => {
+    if (!isStep4Valid()) return
     setIsSubmitting(true)
     try {
       const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          company_uid: COMPANY_UID,
+          selectedDate: formData.selectedDate
+            ? (() => {
+                const [y, m, d] = formData.selectedDate.split("-").map(Number)
+                const nextDate = new Date(Date.UTC(y, m - 1, d + 1))
+                return nextDate.toISOString().split("T")[0]
+              })()
+            : formData.selectedDate,
+        }),
       })
-      
+
       if (!response.ok) {
-        console.error('Failed to submit booking:', response.status, response.statusText)
-      } else {
-        console.log('Booking submitted successfully')
+        console.error("Failed to submit booking:", response.status, response.statusText)
+        return
       }
+      console.log("Booking submitted successfully")
+      setIsBookingConfirmed(true)
     } catch (error) {
-      console.error('Error submitting booking:', error)
+      console.error("Error submitting booking:", error)
     } finally {
       setIsSubmitting(false)
-      setIsBookingConfirmed(true)
     }
   }
 
@@ -114,9 +129,8 @@ export default function BookingWizard() {
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+      
       case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
-      case 4:
         return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
@@ -172,18 +186,16 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <button
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
@@ -193,6 +205,7 @@ export default function BookingWizard() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={!isStep4Valid() || isSubmitting}
                   className={`px-6 py-2 rounded-md transition-colors ${
@@ -201,7 +214,7 @@ export default function BookingWizard() {
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
                 >
-                  {isSubmitting ? "Submitting..." : "Confirm Booking"}
+                  {isSubmitting ? "Submitting..." : "Confirm booking"}
                 </button>
               )}
             </div>

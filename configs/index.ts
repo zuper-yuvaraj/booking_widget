@@ -1,5 +1,5 @@
-export const COMPANY_NAME = "Zuper Roofing"
-export const TERMS_OF_SERVICE = 'https://www.zuper.co/terms-conditions'
-export const PRIVACY_POLICY = 'https://www.zuper.co/privacy-policy'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/fda86828-8a7a-4df9-8d23-e1283b12531c"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/906256cc-c15b-4b65-ac6d-0230c10c035d"
+export const COMPANY_NAME = "Dickinson Roofing"
+export const TERMS_OF_SERVICE = 'https://826roof.com/terms-of-service/'
+export const PRIVACY_POLICY = 'https://826roof.com/privacy-policy/'
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/fd0dd5f6-e133-4c56-8ae5-d26158108397"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/b6491156-b7b9-4f36-ab17-fa6a634b5a74"

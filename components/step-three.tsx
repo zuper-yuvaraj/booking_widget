@@ -19,13 +19,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
       icon: Wrench,
       color: "green",
     },
-    {
-      id: "install_replace",
-      title: "Install/Replace",
-      description: "Expert installation or replacement of your roof",
-      icon: ShieldAlert,
-      color: "green"
-    },
+    
   ]
 
   const handleServiceSelect = (serviceType: string) => {
@@ -42,7 +36,8 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
         <p className="text-gray-600 mt-2">Select the service you need</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+
         {serviceTypes.map((service) => {
           const Icon = service.icon
           const isSelected = formData.serviceType === service.id

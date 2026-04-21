@@ -9,15 +9,15 @@ interface BookingConfirmationProps {
 }
 
 export default function BookingConfirmation({ formData }: BookingConfirmationProps) {
-  const formatDate = (dateString: string) => {
-    dateString = dateString + " 00:00:00"
-    const date = new Date(dateString)
+  const formatDate = (ymd: string) => {
+    const [y, m, d] = ymd.split("-").map(Number)
+    const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-      timeZone: 'America/New_York'
+      timeZone: "America/Chicago",
     })
   }
 
