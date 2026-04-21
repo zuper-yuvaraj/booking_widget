@@ -6,6 +6,7 @@ import type { StepProps } from "@/types/booking"
 
 type FlowStep =
   | "main"
+  | "diagnostic-system"
   | "tuneup-system"
   | "tuneup-heating-type"
   | "tuneup-cooling-type"
@@ -16,6 +17,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   const [flowStep, setFlowStep] = useState<FlowStep>("main")
   const [mainChoice, setMainChoice] = useState<string | null>(null)
   const [mainChoiceLabel, setMainChoiceLabel] = useState<string | null>(null)
+  const [diagnosticSystem, setDiagnosticSystem] = useState<string | null>(null)
   const [tuneUpSystem, setTuneUpSystem] = useState<string | null>(null)
   const [tuneUpSystemLabel, setTuneUpSystemLabel] = useState<string | null>(null)
   const [newSystemOption, setNewSystemOption] = useState<string | null>(null)
@@ -26,9 +28,10 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     setMainChoice(choice)
     setMainChoiceLabel(label)
     if (choice === "diagnostic") {
-      const notes = buildNotes([`What are you looking to schedule?: ${label}`])
-      onUpdateFormData("serviceType", "Diagnostic")
-      onUpdateFormData("notes", notes)
+      onUpdateFormData("serviceType", "")
+      onUpdateFormData("notes", "")
+      setDiagnosticSystem(null)
+      setFlowStep("diagnostic-system")
     } else if (choice === "tuneup") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
@@ -41,6 +44,16 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
       setNewSystemOption(null)
       setFlowStep("newsystem-replace")
     }
+  }
+
+  const handleDiagnosticSystemSelect = (system: string, label: string) => {
+    setDiagnosticSystem(system)
+    const notes = buildNotes([
+      `What are you looking to schedule?: ${mainChoiceLabel}`,
+      `What system is this for?: ${label}`,
+    ])
+    onUpdateFormData("serviceType", "Diagnostic")
+    onUpdateFormData("notes", notes)
   }
 
   const handleTuneUpSystemSelect = (system: string, label: string) => {
@@ -129,7 +142,10 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   const goBack = () => {
     onUpdateFormData("serviceType", "")
     onUpdateFormData("notes", "")
-    if (flowStep === "tuneup-system") {
+    if (flowStep === "diagnostic-system") {
+      setFlowStep("main")
+      setDiagnosticSystem(null)
+    } else if (flowStep === "tuneup-system") {
       setFlowStep("main")
       setTuneUpSystem(null)
       setTuneUpSystemLabel(null)
@@ -236,6 +252,37 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
             isSelected={mainChoice === "newsystem"}
             onClick={() => handleMainSelect("newsystem", "New System Exact Quote")}
           />
+        </div>
+      </div>
+    )
+  }
+
+  // ── Diagnostic: What system is this for? ─────────────────────────────────────
+  if (flowStep === "diagnostic-system") {
+    const systems = [
+      { id: "heating", title: "Heating", description: "For heating problems like no heat, weak heat, or uneven comfort." },
+      { id: "cooling", title: "Cooling", description: "For cooling problems like no AC, weak airflow, or warm air." },
+      { id: "ductless", title: "Ductless Mini-Split", description: "For ductless zoned systems that are not heating or cooling properly." },
+      { id: "waterheater", title: "Water Heater", description: "For no hot water, low hot water, leaks, or other water heater issues." },
+      { id: "notsure", title: "Not Sure", description: "Choose this if you are not sure what system is causing the problem." },
+    ]
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <BackButton />
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-semibold text-gray-900">What system is this for?</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {systems.map((system) => (
+            <SelectionCard
+              key={system.id}
+              title={system.title}
+              description={system.description}
+              isSelected={diagnosticSystem === system.id}
+              onClick={() => handleDiagnosticSystemSelect(system.id, system.title)}
+            />
+          ))}
         </div>
       </div>
     )
