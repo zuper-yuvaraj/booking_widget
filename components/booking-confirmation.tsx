@@ -36,12 +36,12 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-4">
           Thanks for booking with {COMPANY_NAME}!
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
+        {/* <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
             {formatDate(formData.preferredDate)}
           </span>
-        </p>
+        </p> */}
       </div>
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
