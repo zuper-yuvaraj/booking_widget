@@ -1,9 +1,9 @@
-export const COMPANY_NAME = "Baja Roofing Inc"
+export const COMPANY_NAME = "Texas Vets Roofing"
 export const TERMS_OF_SERVICE = 'https://bayfrontroofing.com/'
 export const PRIVACY_POLICY = 'https://bayfrontroofing.com/privacy-policy/'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/55506e03-8f67-4002-962e-dcae1a7e59a6"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/18f86b09-1bed-4d06-9a62-836612dffd7e"
-export const COMPANY_UUID = "3b0eb1a1-47c9-4e77-b254-c371e5a2c63f"
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/4691b71f-6551-4f49-9502-99994a3150a1"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/3b592ec2-1efb-4684-9659-2436546d1719"
+export const COMPANY_UUID = "ac6e7bc9-9619-47d6-bdd4-dbf6957c6323"
 export const TIME_ZONE = "America/Los_Angeles" 
 
 
