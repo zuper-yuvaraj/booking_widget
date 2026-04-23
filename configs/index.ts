@@ -1,6 +1,6 @@
 export const COMPANY_NAME = "Elevate Roofing Pros"
-export const TERMS_OF_SERVICE = 'https://calendly.com/legal/definitions'
-export const PRIVACY_POLICY = 'https://calendly.com/legal/privacy-notice'
+export const TERMS_OF_SERVICE = 'https://elevateroofingpros.com/terms'
+export const PRIVACY_POLICY = 'https://elevateroofingpros.com/privacy'
 export const ASSISTED_SCHEDULING_WEBHOOK = ""
 export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/0f4af100-30f9-4f53-8c0b-938f6fb5cfa7"
 export const COMPANY_UUID = "404429d9-3bc0-42a1-932c-310d482bcd51"
