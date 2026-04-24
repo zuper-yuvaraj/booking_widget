@@ -7,14 +7,14 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   const serviceTypes = [
     {
       id: "quantum_fiber_repair",
-      title: "Quantum Fiber Service APPT",
+      title: "Internet Support",
       description: " Request a service appointment if you are experiencing an internet outage or slow speeds.",
       icon: Wrench,
       color: "green",
     },
     {
       id: "request_an_estimate",
-      title: "Request an Estimate",
+      title: "Fiber Projects & Services",
       description: "Select this option if you need to submit a bid request.",
       icon: HomeIcon,
       color: "green",

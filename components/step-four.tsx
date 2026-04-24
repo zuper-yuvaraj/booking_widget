@@ -35,7 +35,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     const today = new Date(year, month - 1, day)
     
     let i = 0
-    while (dates.length < 7) {
+    while (dates.length < 30) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
       const dayOfWeek = date.getDay()
@@ -191,8 +191,8 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
+        <div className="grid grid-cols-5 gap-2 mb-6">
+          {calendarDates.slice(0, 30).map((date, index) => {
             const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
             return (
               <button
