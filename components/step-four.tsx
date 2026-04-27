@@ -37,27 +37,72 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
 
   const calendarDates = generateCalendarDates()
 
-  const fetchAvailability = async (date: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data')
-      }
-      const data: ApiResponse = await response.json()
-      if(!data.success) {
-        throw new Error(data.message || 'Failed to fetch availability data')
-      }
+  // Build service territory from entered address
+ 
+  const TERRITORY_UID = searchParams.get("territory_uid") || "";
+ 
 
-      setAvailabilityData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching availability:', err)
-    } finally {
-      setLoading(false)
+
+
+//   const fetchAvailability = async (date: string) => {
+//     setLoading(true)
+//     setError(null)
+//     try {
+//       const params = new URLSearchParams({
+//       date,
+//       serviceType: formData.serviceType,
+//       company_uid: COMPANY_UID,
+//       latitude: formData.latitude || "",
+//       longitude: formData.longitude || "",
+//       zipcode: formData.zipcode || "",
+//       address: formData.address || "",
+//     })
+//       const response = await fetch(
+//   `${ASSISTED_SCHEDULING_WEBHOOK}?${params.toString()}`
+// )
+//       if (!response.ok) {
+//         throw new Error('Failed to fetch availability data')
+
+//       }
+//       const data: ApiResponse = await response.json()
+//       if(!data.success) {
+//         throw new Error(data.message || 'Failed to fetch availability data')
+//       }
+
+//       setAvailabilityData(data)
+//     } catch (err) {
+//       setError(err instanceof Error ? err.message : 'An error occurred')
+//       console.error('Error fetching availability:', err)
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+const fetchAvailability = async (date: string) => {
+  setLoading(true)
+  setError(null)
+  try {
+    const params = new URLSearchParams({
+      date,
+      serviceType: formData.serviceType,
+      company_uid: COMPANY_UID,
+      latitude: formData.latitude || "",
+      longitude: formData.longitude || "",
+      zipcode: formData.zipcode || "",
+      address: formData.address || "",
+    })
+    const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?${params.toString()}`)
+    const data: ApiResponse = await response.json()
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch availability data')
     }
+    setAvailabilityData(data)
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'An error occurred')
+    console.error('Error fetching availability:', err)
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
@@ -253,11 +298,34 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
             </div>
           )}
           
-          {error && (
+          {/* {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800">Error: {error}</p>
             </div>
-          )}
+          )} */}
+          {error && (
+  <div className={`border rounded-lg p-4 flex items-start gap-3 ${
+    error.toLowerCase().includes("outside serviceable area") || error.toLowerCase().includes("outside")
+      ? "bg-yellow-50 border-yellow-300"
+      : "bg-red-50 border-red-200"
+  }`}>
+    <span className="text-xl mt-0.5">
+      {error.toLowerCase().includes("outside") ? "📍" : "⚠️"}
+    </span>
+    <div>
+      <p className={`font-medium ${
+        error.toLowerCase().includes("outside") ? "text-yellow-800" : "text-red-800"
+      }`}>
+        {error.toLowerCase().includes("outside") ? "Service Unavailable" : "Something went wrong"}
+      </p>
+      <p className={`text-sm mt-1 ${
+        error.toLowerCase().includes("outside") ? "text-yellow-700" : "text-red-700"
+      }`}>
+        {error}
+      </p>
+    </div>
+  </div>
+)}
           
           {!loading && !error && userSlots.length === 0 && (
             <div className="text-center py-8">

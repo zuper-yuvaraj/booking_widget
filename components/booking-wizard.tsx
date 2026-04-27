@@ -7,7 +7,6 @@ import { isValidEmail } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
-import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { CREATE_BOOKING_WEBHOOK } from "@/configs"
@@ -17,12 +16,13 @@ export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step2Touched, setStep2Touched] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: "hea",
     address: "",
     street: "",
     city: "",
@@ -35,37 +35,54 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    isNeeecoEmployee: undefined,
+    outreachTeamMember: "",
+    partnerName: "",
+    electricProvider: "",
+    electricAccount: "",
+    gasProvider: "",
+    gasAccount: "",
+    notes: "",
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const isStep1Valid = () => {
-    return !!formData.address
+    return !!formData.address && formData.isServiceAreaValid === true
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
+    const hasRequiredFields = !!(
+      formData.firstName?.trim() &&
+      formData.lastName?.trim() &&
+      formData.phone &&
+      formData.email &&
+      (formData.isNeeecoEmployee === "yes" || formData.isNeeecoEmployee === "no")
+    )
+
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
+    const isEmployeeDependentValid = formData.isNeeecoEmployee === "yes"
+      ? !!formData.outreachTeamMember
+      : formData.isNeeecoEmployee === "no"
+      ? !!formData.partnerName
+      : false
+    const isConsentGiven = formData.marketingConsent === true
+
+    return hasRequiredFields && isPhoneValid && isEmailValid && isEmployeeDependentValid && isConsentGiven
   }
 
   const isStep3Valid = () => {
-    return !!formData.serviceType
-  }
-
-  const isStep4Valid = () => {
     return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -84,7 +101,7 @@ export default function BookingWizard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, job_description: formData.notes })
       })
       
       if (!response.ok) {
@@ -107,6 +124,7 @@ export default function BookingWizard() {
       onNext: nextStep,
       onPrev: prevStep,
       isValid: false,
+      isTouched: currentStep === 2 ? step2Touched : false,
     }
 
     switch (currentStep) {
@@ -115,9 +133,7 @@ export default function BookingWizard() {
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
       case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
-      case 4:
-        return <StepFour {...stepProps} isValid={isStep4Valid()} />
+        return <StepFour {...stepProps} isValid={isStep3Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
@@ -131,13 +147,13 @@ export default function BookingWizard() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of 3</div>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
+                {[1, 2, 3].map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
@@ -146,7 +162,7 @@ export default function BookingWizard() {
                     >
                       {step}
                     </div>
-                    {step < 4 && (
+                    {step < 3 && (
                       <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
                     )}
                   </div>
@@ -172,9 +188,18 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <button
-                  onClick={nextStep}
+                  onClick={() => {
+                    if (currentStep === 2) {
+                      setStep2Touched(true)
+                      if (isStep2Valid()) {
+                        nextStep()
+                      }
+                    } else {
+                      nextStep()
+                    }
+                  }}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
                     (currentStep === 2 && !isStep2Valid()) ||
@@ -194,9 +219,9 @@ export default function BookingWizard() {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={!isStep4Valid() || isSubmitting}
+                  disabled={!isStep3Valid() || isSubmitting}
                   className={`px-6 py-2 rounded-md transition-colors ${
-                    !isStep4Valid() || isSubmitting
+                    !isStep3Valid() || isSubmitting
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}

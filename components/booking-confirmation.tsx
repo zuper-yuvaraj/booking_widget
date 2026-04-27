@@ -37,7 +37,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
-            {formatDate(formData.selectedDate)} at {formatTime(formData.selectedSlot)}
+            {formData.selectedDate} at {formatTime(formData.selectedSlot)}
           </span>
         </p>
       </div>

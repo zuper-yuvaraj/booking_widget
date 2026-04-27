@@ -1,0 +1,10 @@
+{
+    "compareFolders.excludeFilter": [
+        "/.git",
+        "/.next",
+        "/app",
+        "/hooks",
+        "/public",
+        "/types"
+    ]
+}

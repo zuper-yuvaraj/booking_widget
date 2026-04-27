@@ -16,7 +16,17 @@ export interface FormData {
   start_time: string
   end_time: string
   selectedUser: string
+  isNeeecoEmployee?: "yes" | "no"
+  outreachTeamMember?: string
+  partnerName?: string
+  electricProvider?: string
+  electricAccount?: string
+  gasProvider?: string
+  gasAccount?: string
   marketingConsent?: boolean
+  notes?: string
+  isServiceAreaValid?: boolean
+  serviceAreaMessage?: string
 }
 
 export interface UserSlot {
@@ -84,4 +94,5 @@ export interface StepProps {
   onNext: () => void
   onPrev: () => void
   isValid: boolean
+  isTouched?: boolean
 }

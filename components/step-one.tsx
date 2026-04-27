@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { MapPin } from "lucide-react"
 import type { StepProps, GoogleMapsPrediction } from "@/types/booking"
 import { useGoogleMaps } from "@/hooks/use-google-maps"
+import { COMPANY_UUID, GET_SERVICES_WEBHOOK } from "@/configs"
 
 // Extend Window interface to include Google Maps
 declare global {
@@ -20,6 +21,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
   const [marker, setMarker] = useState<any>(null)
   const [autocompleteService, setAutocompleteService] = useState<any>(null)
   const [placesService, setPlacesService] = useState<any>(null)
+  const [isCheckingService, setIsCheckingService] = useState(false)
   const mapRef = useRef<HTMLDivElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
 
@@ -190,19 +192,51 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
 
         const addressComponents = parseAddressComponents(place)
 
+        const lat = place.geometry.location.lat().toString()
+        const lng = place.geometry.location.lng().toString()
+
         setSearchValue(place.formatted_address)
         onUpdateFormData("address", place.formatted_address)
         onUpdateFormData("street", addressComponents.street)
         onUpdateFormData("city", addressComponents.city)
         onUpdateFormData("state", addressComponents.state)
         onUpdateFormData("zipcode", addressComponents.zipcode)
-        onUpdateFormData("latitude", place.geometry.location.lat().toString())
-        onUpdateFormData("longitude", place.geometry.location.lng().toString())
- 
+        onUpdateFormData("latitude", lat)
+        onUpdateFormData("longitude", lng)
+
         map.setCenter(place.geometry.location)
         map.setZoom(20)
 
         setShowPredictions(false)
+        onUpdateFormData("isServiceAreaValid", false)
+        onUpdateFormData("serviceAreaMessage", "")
+
+        // Check service territory
+        setIsCheckingService(true)
+        const params = new URLSearchParams({
+          company_uid: COMPANY_UUID,
+          latitude: lat,
+          longitude: lng,
+          zipcode: addressComponents.zipcode,
+        })
+        fetch(`${GET_SERVICES_WEBHOOK}?${params.toString()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const valid = data.isValid === true
+            const msg = valid
+              ? "Within the service territory"
+              : (data.message || "Outside the service territory")
+            onUpdateFormData("isServiceAreaValid", valid)
+            onUpdateFormData("serviceAreaMessage", msg)
+          })
+          .catch(() => {
+            const msg = "Failed to verify service territory. Please try again."
+            onUpdateFormData("isServiceAreaValid", false)
+            onUpdateFormData("serviceAreaMessage", msg)
+          })
+          .finally(() => {
+            setIsCheckingService(false)
+          })
       }
     })
   }
@@ -267,8 +301,17 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
         </div>
       </div>
 
+      {isCheckingService && (
+        <p className="text-sm text-gray-500 text-center">Checking service availability...</p>
+      )}
+
       {formData.address && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className={`p-4 rounded-lg border ${formData.serviceAreaMessage && !formData.isServiceAreaValid ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
+          {!isCheckingService && formData.serviceAreaMessage && (
+            <p className={`text-sm font-medium mb-2 ${formData.isServiceAreaValid ? "text-green-700" : "text-red-700"}`}>
+              {formData.serviceAreaMessage}
+            </p>
+          )}
           <p className="text-sm text-green-800">
             <MapPin className="inline w-4 h-4 mr-1" />
             Selected: {formData.address}
