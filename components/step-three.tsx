@@ -8,14 +8,15 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     {
       id: "quantum_fiber_repair",
       title: "Internet Support",
-      description: " Request a service appointment if you are experiencing an internet outage or slow speeds.",
+      description: "Experiencing an internet outage, slow speeds, intermittent connectivity, or equipment issues? Request a service appointment and our team will assist you.",
       icon: Wrench,
       color: "green",
     },
     {
       id: "request_an_estimate",
       title: "Fiber Projects & Services",
-      description: "Select this option if you need to submit a bid request.",
+      description: "For fiber construction, installation projects, or consulting services.",
+      note: " Sterling Ranch residents needing internet support should use the \”Internet Support\” option.",
       icon: HomeIcon,
       color: "green",
     }
@@ -95,6 +96,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
                   }`}
                 >
                   {service.description}
+                  {service.note && <strong>{service.note}</strong>}
                 </p>
               </div>
             </div>
