@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
+import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
+import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -13,6 +15,10 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
 
+  const searchParams = useQueryParams();
+  const COMPANY_UID = searchParams.get("company_uid") ||COMPANY_UUID
+  console.log("Company UID from URL:", COMPANY_UID)
+
   const generateCalendarDates = () => {
     const dates = []
     const today = new Date()
@@ -20,10 +26,15 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     while (dates.length < 7) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
+      console.log("Generated date:", date, "Day of week:", date.getDay())
       // Skip Sundays (day 0)
-      if (date.getDay() !== 0) {
-        dates.push(date)
+      if (date.getDay() == 0 || date.getDay() == 6) {
+        // dates.push(date)
+        i++
+        continue;
       }
+        dates.push(date)
+
       i++
     }
     return dates
@@ -35,11 +46,15 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`https://internalwf.zuper.co/webhook/02d1f4ac-7be0-44f8-a7e9-549104cc82fd?date=${date}&serviceType=${formData.serviceType}`)
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
       const data: ApiResponse = await response.json()
+      if(!data.success) {
+        throw new Error(data.message || 'Failed to fetch availability data')
+      }
+
       setAvailabilityData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -117,13 +132,19 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       weekday: "short",
       day: "numeric",
       month: "short",
-      timeZone: 'America/New_York'
+      timeZone:TIME_ZONE
     })
   }
 
+const formatDateOnly = (date: Date) => {
+  return date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    timeZone:TIME_ZONE,
+  });
+};
   // Helper function to transform API data to UserSlot format
   const transformApiDataToUserSlots = (): UserSlot[] => {
-    if (!availabilityData) return []
+    if (!availabilityData?.data) return []
     
     const selectedDateData = availabilityData.data.availability.find(
       (item) => item.date === formData.selectedDate
@@ -164,12 +185,12 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true,
-        timeZone: 'America/New_York'
+        timeZone: TIME_ZONE
       })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true,
-        timeZone: 'America/New_York'
+        timeZone: TIME_ZONE
       })}`
       
       slot.users.forEach((userId: string) => {
@@ -222,7 +243,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                 }`}
               >
                 <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
+                <div className="text-lg font-bold">{formatDateOnly(date)}</div>
               </button>
             )
           })}
@@ -318,7 +339,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                                   : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
                               }`}
                             >
-                              {slot.display}
+                              {slot.display }
                             </button>
                           )
                         })}

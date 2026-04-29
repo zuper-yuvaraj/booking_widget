@@ -10,6 +10,8 @@ import StepTwo from "./step-two"
 import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
+import { CREATE_BOOKING_WEBHOOK, COMPANY_UUID } from "@/configs"
+import {  useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -33,9 +35,13 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    marketingConsent: false,
   })
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const searchParams = useQueryParams();
+  const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
+
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -44,11 +50,12 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.serviceType)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
+    const hasConsent = formData.marketingConsent === true
+
+    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
   }
 
   const isStep3Valid = () => {
@@ -60,13 +67,17 @@ export default function BookingWizard() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep === 2) {
+      setCurrentStep(4)
+    } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
   }
 
   const prevStep = () => {
-    if (currentStep > 1) {
+    if (currentStep === 4) {
+      setCurrentStep(2)
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
   }
@@ -74,7 +85,7 @@ export default function BookingWizard() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('https://internalwf.zuper.co/webhook/c1e41bb4-fcfd-4d3d-a8c1-d1f5ee754f37', {
+      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}&serviceType=${encodeURIComponent(formData.serviceType)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

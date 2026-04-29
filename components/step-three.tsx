@@ -1,33 +1,20 @@
-"use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
+
+import {
+  FileText,
+  Droplets,
+  Wrench,
+  Fan,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Wind,
+  Flame,
+  Activity,
+} from "lucide-react"
 import type { StepProps } from "@/types/booking"
 
 export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const serviceTypes = [
-
-    {
-      id: "repair",
-      title: "Repair Inspection",
-      description: "Professional Roof repair and maintenance",
-      icon: Wrench,
-      color: "green",
-    },
-    {
-      id: "replacement",
-      title: "Replacement Inspection",
-      description: "Professional Roof replacement service",
-      icon: HomeIcon,
-      color: "green",
-    },
-    {
-      id: "tarping",
-      title: "Emergency Tarping",
-      description: "Hourly rate of $300.00 with $99.00 dispatch fee",
-      icon: ShieldAlert,
-      color: "green"
-    },
-  ]
+  const serviceTypes : any = []
 
   const handleServiceSelect = (serviceType: string) => {
     onUpdateFormData("serviceType", serviceType)

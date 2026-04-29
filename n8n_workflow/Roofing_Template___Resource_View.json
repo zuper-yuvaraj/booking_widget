@@ -1,0 +1,1314 @@
+{
+  "name": "Roofing Template - Resource View",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $('Configs').first().json.BASE_URL }}/assisted_scheduling?from_date={{ $('Configs').first().json.from }}&job_duration={{ $('Find Job Category').first().json.duration }}&to_date={{ $('Configs').first().json.to }}&skillset_uid={{ $json[\"skillset_uid\"] || '' }}&team_timezone=NONE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fdf32b5e-f937-4f97-8d1b-6ea4aa88f88d",
+      "name": "Get Slots",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2300,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7ab3d15e-ace3-45ec-bd1a-030824d3abdb",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2940,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs').first().json.BASE_URL }}/user/{{ $json.user_uid }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f5e89bf-a9de-4d1e-9b46-7a8d5444c84e",
+      "name": "Get Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2760,
+        -20
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/customers?filter.customer_email={{ $('Place Booking').first().json.body.email }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{  $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fdc31075-bf49-4259-bbff-7a24376dfdf7",
+      "name": "Get Customer Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        1280
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5b7e9d3f-2f7c-4150-a8ed-6bd05342c32f",
+              "leftValue": "={{ $json.total_records }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "889c0a0a-2d84-418d-9f27-b6909bd111fd",
+      "name": "If Customer is available",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const previous_node_details = $input.all()[0].json\n\nlet customer_uid = \"\";\n\n\nif(previous_node_details.data){\n  customer_uid = previous_node_details.data[0].customer_uid;\n}\nelse{\n  customer_uid = previous_node_details.customer_uid;\n}\n\nreturn {\n  customer_uid\n};"
+      },
+      "id": "c57b2891-2d41-457e-9557-5a798c5e987a",
+      "name": "Get Customer UID",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2620,
+        1560
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/jobs ",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "5ddb37af-df42-4534-951f-7ec5b0f5640c",
+      "name": "Create Job1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const previous_node_details = $input.all()[0].json\n\nlet customer_uid = \"\";\n\n\nif(previous_node_details.data){\n  customer_uid = previous_node_details.data[0].customer_uid;\n}\nelse{\n  customer_uid = previous_node_details.customer_uid;\n}\n\nreturn {\n  customer_uid\n};"
+      },
+      "id": "7c41f4b3-bd4a-4164-8a21-ee4ab231567b",
+      "name": "Get Customer UID1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2160,
+        1000
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "let date = $input.first().json.query.date;\nlet companyUID = $input.first().json.query.company_uid;\nlet serviceType = $input.first().json.query.serviceType;\nconst moment = require(\"moment-timezone\");\n\n\nlet isValid = true, message = \"\"\n\nconst jobCategoryMap = {\n \n}\n\n\nconst configs ={\n   \"\": {  //zuper company uuid\n    BASE_URL: \"\", //https://us-east-1.zuperpro.com/api\n    API_KEY: \"\", // api key Zuper Integration\n    timezone: \"\"// Time zone for the application, e.g., \"America/New_York\"\n  }\n}\n\n\nif(!configs[companyUID]) {\n  isValid = false\n  message = \"Company Configs Not Found\"\n}\n\nconst ALLOWED_FORMATS = [\n  \"YYYY-MM-DD\",\n  \"YYYY-MM-D\",\n  \"YYYY-M-D\",\n  \"YYYY-M-DD\",\n  \"MM/DD/YYYY\",\n  \"MMM DD YYYY\"\n];\n\nfunction getUtcRange(dateStr, tz) {\n  if (!moment.tz.zone(tz)) {\n    return {\n      from: `${dateStr} 00:00:00`,\n      to: `${dateStr} 23:59:59`\n    };\n  }\n\n  // Strict parsing (true = strict mode)\n  const m = moment.tz(dateStr, ALLOWED_FORMATS, true, tz);\n\n  if (!m.isValid()) {\n    return {\n      from: `${dateStr} 00:00:00`,\n      to: `${dateStr} 23:59:59`\n    };\n  }\n\n  const start = m.clone().startOf(\"day\");\n  const end   = m.clone().endOf(\"day\");\n\n  return {\n    from: start.utc().format(\"YYYY-MM-DD HH:mm:ss\"),\n    to: end.utc().format(\"YYYY-MM-DD HH:mm:ss\")\n  };\n}\n\nconst fromTo = getUtcRange(date, configs?.[companyUID]?.timezone ?? null)\n\nreturn {\n  date,\n  ...fromTo,\n  ...configs[companyUID],\n  jobCategory: \"Roof Inspection\", // jobCategoryMap[serviceType],\n  isValid,\n  message\n}"
+      },
+      "id": "f5335e9c-72b7-460a-95ae-65e7f3de6534",
+      "name": "Configs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// var users = $('Get Users').first().json.data;\nvar slots = $('Get Slots').first().json.data;\n\nconst _ = require('underscore');\n\n// var bio = {};\n\n// _.each(users, function(u) {\n//   _.each(u.custom_fields, function(c){\n//     if(c.label == \"Bio\") {\n//       bio[u.user_uid] = c.value;\n//     }\n//   })\n// })\n\n// _.each(slots.users, function(u){\n//   u.bio = bio[u.user_uid]\n// })\n\nreturn {\n  success: true,\n  data: slots\n};"
+      },
+      "id": "e067e454-0aa8-4995-87cf-a3f31a07b236",
+      "name": "Return Slots",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3020,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs').first().json.BASE_URL }}/jobs/category",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "da0415ee-efc8-4490-8cee-3fedebb74774",
+      "name": "Get Categories",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { jobCategory } = $('Configs').first().json\nconst categories = $('Get Categories').first().json.data\nlet isValid = true, message = ''\n\nlet selectedCategory = categories.find(category=> category.category_name.toLowerCase() == jobCategory?.toLowerCase())\n\nif(!selectedCategory) {\n  isValid = false\n  message = \"Selected Service Not Found\"\n}\n\nfunction getTotalMinutes(duration) {\n  if(!duration) return 0\n  const { days = 0, hours = 0, minutes = 0 } = duration;\n  return (days * 24 * 60) + (hours * 60) + minutes;\n}\n\nlet duration = getTotalMinutes(selectedCategory?.estimated_duration) || 120\nif(duration > 480) duration = 480\n\nreturn {\n  categoryUID: selectedCategory?.category_uid,\n  categoryName: selectedCategory?.category_name,\n  duration,\n  isValid,\n  message\n}\n"
+      },
+      "id": "f852dd3e-7697-4b87-ae81-d9a4d9c421d5",
+      "name": "Find Job Category",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "3c24fefe-a083-48bc-9979-6aa59d4315df",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ee4a7f73-792f-4f4d-8c8e-f8655db29268",
+      "name": "If Company Configs Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        740,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json\n\nreturn {\n  message: input.message,\n  success: false\n}"
+      },
+      "id": "1d897083-f74c-4973-87f0-3cf52b9286d6",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2140,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "1faa4c47-0ab9-4263-9776-b024900878b7",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d40f9c90-8131-4490-90d7-78d8c339a8e1",
+      "name": "If Selected Category Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const users = $('Get Slots').first().json.data.users || []\n\nreturn users"
+      },
+      "id": "b620b972-4a8d-4f98-94cb-c82b7e0bdb3a",
+      "name": "Return Users",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2520,
+        -20
+      ],
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let companyUID = $input.first().json.query.company_uid;\nlet serviceType = $input.first().json.body.serviceType;\nlet isValid = true, message = \"\"\n\nconst configs ={\n   \"\": {  //zuper company uuid\n    BASE_URL: \"\", //https://us-east-1.zuperpro.com/api\n    API_KEY: \"\", // api key Zuper Integration\n    timezone: \"\"// Time zone for the application, e.g., \"America/New_York\"\n  }\n}\n\n\nconst jobCategoryMap = {\n \n}\n\nif(!configs[companyUID]) {\n  isValid = false\n  message = \"Company Configs Not Found\"\n}\n\n\nreturn {\n  ...configs[companyUID],\n  jobCategory: \"Roof Inspection\", // jobCategoryMap[serviceType],\n  isValid,\n  message\n}"
+      },
+      "id": "1a7b654e-968a-43a4-8ac9-577fe3ca4f4d",
+      "name": "Configs1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/jobs/category?populate_statuses=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8520a498-1626-4fa7-9bd3-4f216d415dd3",
+      "name": "Get Categories1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { jobCategory } = $('Configs1').first().json\nconst categories = $('Get Categories1').first().json.data\nlet isValid = true, message = ''\n\nlet selectedCategory = categories.find(category=> category.category_name.toLowerCase() == jobCategory?.toLowerCase())\nconst scheduledStatus = selectedCategory.job_statuses?.find(stat=>stat.status_type == \"SCHEDULED\")\n\nif(!selectedCategory) {\n  isValid = false\n  message = \"Selected Service Not Found\"\n}\n\nfunction getTotalMinutes(duration) {\n  if(!duration) return 0\n  const { days = 0, hours = 0, minutes = 0 } = duration;\n  return (days * 24 * 60) + (hours * 60) + minutes;\n}\n\n\nreturn {\n  categoryUID: selectedCategory?.category_uid,\n  categoryName: selectedCategory?.category_name,\n  scheduledStatusUID:scheduledStatus?.status_uid,\n  scheduledStatusName: scheduledStatus?.status_name,\n  duration: getTotalMinutes(selectedCategory?.estimated_duration) || 120,\n  isValid,\n  message\n}\n"
+      },
+      "id": "8427e2fc-a981-463c-87ea-8a352042391d",
+      "name": "Find Job Category1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "79b4e6bf-7c4d-404f-b643-79124f550b85",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a018d6b-4b8f-4767-9a04-f6931762590c",
+      "name": "If Valid Category Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const moment = require('moment-timezone');\n\nconst data = $('Place Booking').first().json.body;\nconst configs = $('Configs1').first().json\n\ndata.fullName = (data.firstName || '') + \" \" + (data.lastName || \"\");\n\nconst job_category = $('Find Job Category1').first().json.categoryUID\nconst team_uid = $('Get User Team').first().json.data?.[0]?.team_uid\n\nvar customer_uid = $input.first().json.customer_uid;\nconst input =$('Place Booking').first().json.body\nconst serviceType = input.serviceType\n// customer_uid = customer_uid.customer_uid;\n\nconst jobMasterCF = $('Get Job Master CF').first().json.data\n\nconst customFields = jobMasterCF.map((cf) => ({\n  dependent_on: cf.dependent_on,\n  dependent_options: cf.dependent_options,\n  hide_field: cf.hide_field,\n  hide_to_fe: cf.hide_to_fe,\n  ready_only: cf.read_only,\n  type: cf.field_type,\n  label: cf.field_name,\n  value: cf.field_name == 'Services'?serviceType :'',\n  id: cf.display_order,\n  ...(cf?.group?.group_name && { group_name: cf.group.group_name }),\n  ...(cf?.group?.group_uid && { group_uid: cf.group.group_uid })\n}));\n\nfunction getScheduledDates(slot, selectedDate) {\n  const [startTime, endTime] = slot.split(\" - \");\n\n  const fromDate = moment.tz(\n    `${selectedDate} ${startTime}`,\n    \"YYYY-MM-DD HH:mm A\",\n    configs.TIMEZONE ||  configs.timezone\n  );\n\n  const toDate = moment.tz(\n    `${selectedDate} ${endTime}`,\n    \"YYYY-MM-DD HH:mm A\",\n    configs.TIMEZONE ||  configs.timezone\n  );\n\n  return {\n    start_time: fromDate.utc().format(\"YYYY-MM-DD HH:mm:ss\"),\n    end_time: toDate.utc().format(\"YYYY-MM-DD HH:mm:ss\"),\n  };\n}\n\nvar address = {\n  street: data.street || \"\",\n  city: data.city || \"\",\n  state: data.state || \"\",\n  zip_code: data.zipcode || \"\",\n  country: \"USA\",\n  first_name: data.firstName,\n  last_name: data.lastName,\n  email: data.email || \"\",\n  geo_cordinates: [ data.latitude, data.longitude ]\n}\n\nconst selectedDate = data.selectedDate\nconst slot = data.selectedSlot\nconst scheduledDates = getScheduledDates(slot,selectedDate)\n\nreturn {\n  \"job\": {\n    \"is_recurrence\": false,\n    \"job_priority\": \"HIGH\",\n    \"job_type\": \"NEW\",\n    \"job_category\": job_category,\n    \"job_description\": '',\n    \"job_title\":data.fullName,\n    \"customer_uid\":customer_uid,\n    \"customer_billing_address\": address,\n    \"customer_address\": address,\n    \"scheduled_start_time\": scheduledDates.start_time,\n    \"scheduled_end_time\": scheduledDates.end_time,\n    \"recurrence_dates\": [],\n    \"custom_fields\": customFields || [],\n    \"job_tags\": [\"Website Booking\"],\n    \"assigned_to\": [{\n      user_uid: data.selectedUser,\n      team_uid: team_uid\n    }]\n  }\n};"
+      },
+      "id": "1f774f9c-b41e-4640-810d-7c7a077f2ade",
+      "name": "Payload to Create Job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/user/{{ $('Place Booking').first().json.body.selectedUser }}/teams",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "95999518-5ad7-4ed9-87a3-9a1ca45adccb",
+      "name": "Get User Team",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $(\"Place Booking\").first().json.body;\nconst customerCategories = $('Get Customer Categories').first().json.data\nconst customerMasterCF = $('Get Customer Custom Fields Master').first().json.data\n\nvar address = {\n  street: data.street || \"\",\n  city: data.city || \"\",\n  state: data.state || \"\",\n  zip_code: data.zipcode || \"\",\n  country: \"USA\",\n  first_name: data.firstName,\n  last_name: data.lastName,\n  email: data.email || \"\",\n  geo_cordinates: [data.latitude, data.longitude],\n};\n\nconst customFieldMapping = {\n  \"Lead\": \"Yes\",\n  \"Lead Source\" : \"Website\"\n}\n\nconst customFields = customerMasterCF.map((cf) => ({\n  dependent_on: cf.dependent_on,\n  dependent_options: cf.dependent_options,\n  hide_field: cf.hide_field,\n  hide_to_fe: cf.hide_to_fe,\n  ready_only: cf.read_only,\n  type: cf.field_type,\n  label: cf.field_name,\n  value: customFieldMapping[cf.field_name] || '',\n  id: cf.display_order,\n  ...(cf?.group?.group_name && { group_name: cf.group.group_name }),\n  ...(cf?.group?.group_uid && { group_uid: cf.group.group_uid })\n}));\n\nconst residentialCategory = customerCategories.find(cat => cat.category_name.toLowerCase() === 'residential')?.category_uid\n\nconst payload = {\n  customer: {\n    customer_first_name: data.firstName,\n    customer_last_name: data.lastName,\n    customer_email: data.email,\n    customer_address: address,\n    customer_billing_address: address,\n    customer_all_addresses: [address],\n    customer_contact_no: {\n      mobile: data.phone,\n    },\n    is_portal_enabled: false,\n    portal_permissions: {\n      can_access_organization_records: false,\n      can_create_asset: false,\n      can_create_property: false,\n    },\n    custom_fields: customFields || [],\n    customer_category: residentialCategory || \"\",\n  },\n};\n\nreturn {\n  payload,\n};\n"
+      },
+      "id": "14300f8f-a5d7-4ae4-a90b-954d04c0207b",
+      "name": "Payload to Create Customer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const moment = require('moment-timezone');\n\nconst data = $('Place Booking').first().json.body;\nconst configs = $('Configs1').first().json\n\ndata.fullName = (data.firstName || '') + \" \" + (data.lastName || \"\");\n\n\nvar customer_uid = $input.first().json.customer_uid;\n\nconst job_category = $('Find Job Category1').first().json.categoryUID\nconst team_uid = $('Get User Team').first().json.data?.[0]?.team_uid\n\nconst jobMasterCF = $('Get Job Master CF').first().json.data\n\n\nconst input =$('Place Booking').first().json.body\nconst serviceType = input.serviceType\n\n\n\n\n\nfunction getScheduledDates(slot, selectedDate) {\n  const [startTime, endTime] = slot.split(\" - \");\n\n  const fromDate = moment.tz(\n    `${selectedDate} ${startTime}`,\n    \"YYYY-MM-DD HH:mm A\",\n    configs.TIMEZONE || configs.timezone\n  );\n\n  const toDate = moment.tz(\n    `${selectedDate} ${endTime}`,\n    \"YYYY-MM-DD HH:mm A\",\n    configs.TIMEZONE || configs.timezone\n  );\n\n  return {\n    start_time: fromDate.utc().format(\"YYYY-MM-DD HH:mm:ss\"),\n    end_time: toDate.utc().format(\"YYYY-MM-DD HH:mm:ss\"),\n  };\n}\n\nconst customFields = jobMasterCF.map((cf) => ({\n  dependent_on: cf.dependent_on,\n  dependent_options: cf.dependent_options,\n  hide_field: cf.hide_field,\n  hide_to_fe: cf.hide_to_fe,\n  ready_only: cf.read_only,\n  type: cf.field_type,\n  label: cf.field_name,\n  value: cf.field_name == 'Services'? serviceType :'',\n  id: cf.display_order,\n  ...(cf?.group?.group_name && { group_name: cf.group.group_name }),\n  ...(cf?.group?.group_uid && { group_uid: cf.group.group_uid })\n}));\n\n// customer_uid = customer_uid.customer_uid;\n\n\nvar address = {\n  street: data.street || \"\",\n  city: data.city || \"\",\n  state: data.state || \"\",\n  zip_code: data.zipcode || \"\",\n  country: \"USA\",\n  first_name: data.firstName,\n  last_name: data.lastName,\n  email: data.email || \"\",\n  geo_cordinates: [ data.latitude, data.longitude ]\n}\n\nconst selectedDate = data.selectedDate\nconst slot = data.selectedSlot\nconst scheduledDates = getScheduledDates(slot,selectedDate)\n\nreturn {\n  \"job\": {\n    \"is_recurrence\": false,\n    \"job_priority\": \"HIGH\",\n    \"job_type\": \"NEW\",\n    \"job_category\": job_category,\n    \"job_description\": '',\n    \"job_title\": (data.fullName),\n    \"customer_uid\":customer_uid,\n    \"customer_billing_address\": address,\n    \"customer_address\": address,\n    \"scheduled_start_time\": scheduledDates.start_time,\n    \"scheduled_end_time\": scheduledDates.end_time,\n    \"recurrence_dates\": [],\n    \"custom_fields\": customFields || [],\n    \"job_tags\": [\"Website Booking\"],\n    \"assigned_to\": [{\n      user_uid: data.selectedUser,\n      team_uid: team_uid\n    }]\n  }\n};"
+      },
+      "id": "6b6deffa-2866-49a2-8d05-075170204cb8",
+      "name": "Payload to create Job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2840,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/jobs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "5db741fe-539f-4c07-91ae-58cd1a861c5f",
+      "name": "Create Job2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3040,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/customers",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "376b74c2-0cbd-4801-ac88-7841ce436e34",
+      "name": "Create Customer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5edfc397-d5d1-4209-ac73-5f23f0706936",
+              "leftValue": "={{ $('Find Job Category1').item.json.scheduledStatusUID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4f0d197f-45bb-4442-b2c6-2829432991ae",
+      "name": "If Scheduled Status Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3520,
+        1220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobUID = $input.first().json.job_uid\nconst categoryInfo = $('Find Job Category1').first().json\n\nconst payload = {\n\t\"customer_signature\": \"\",\n\t\"job_uid\": jobUID,\n\t\"status_name\": categoryInfo.scheduledStatusName,\n\t\"status_uid\": categoryInfo.scheduledStatusUID\n}\n\nreturn {\n  payload\n}"
+      },
+      "id": "e8fe7de9-9b9f-4491-95ee-8aea966a0dfe",
+      "name": "Payload to Update Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3740,
+        1220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/jobs/{{ $json.payload.job_uid }}/status",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "ec9ad9d0-ac5a-4cff-90fb-d6ffc71643e3",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3960,
+        1220
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/settings/custom_fields?module_name=JOB&sort=ASC&sort_by=display_order",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{  $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cd0ab8e3-fcfd-463b-8833-de71f55593be",
+      "name": "Get Job Master CF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        1280
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/customers/category",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ccee573d-a2b3-4a28-8914-b3293d732d32",
+      "name": "Get Customer Categories",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs1').first().json.BASE_URL }}/settings/custom_fields?module_name=CUSTOMER&sort=ASC&sort_by=display_order",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs1').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "84cb4eda-f029-477c-89ff-f496da498f54",
+      "name": "Get Customer Custom Fields Master",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1960,
+        1560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configs').first().json.BASE_URL }}/skills",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Configs').first().json.API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "780e7cf0-2d4d-46d8-a41a-612b82cf2554",
+      "name": "Get Skills",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nconst skills = $('Get Skills').first().json.data\nconst input = $('Assisted Scheduling').first().json.query\nlet serviceType = input.serviceType\n\nif(serviceType == \"Gutter Division  \"){\n  serviceType = \"Gutter Division \"\n}\nconst result = skills.find(item => item.skillset_name ===serviceType );\n\nif(!result){\n  return {\n    result :result,\n    serviceType,\n    isValid : false,\n    message  : \"Skill Dosn't matach\"\n  }\n\n}\nreturn {\n  skillset_uid  : result['skillset_uid'],\n  skillset_name  : result['skillset_name'],\n  serviceType,\n  isValid:true\n};"
+      },
+      "id": "5f9ded29-1bde-4629-8a52-960076b77688",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1860,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "path": "8f2b5532-92b5-4d82-a5a0-1446974384cd",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b4faf60c-806c-4ea1-bc61-198761747e04",
+      "name": "Assisted Scheduling",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ],
+      "webhookId": "8f2b5532-92b5-4d82-a5a0-1446974384cd"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "d6d7e612-5d67-4c1a-b093-b745f364d51c",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3ea4c0ff-5788-4c89-bea0-4863e235b064",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b31682c1-f65b-4c42-a815-a71b95e447a3",
+        "options": {}
+      },
+      "id": "fc213adb-1315-49a9-bd4d-6a317791877a",
+      "name": "Place Booking",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        1280
+      ],
+      "webhookId": "b31682c1-f65b-4c42-a815-a71b95e447a3"
+    }
+  ],
+  "pinData": {
+    "Assisted Scheduling": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "internalwf.zuper.co",
+            "x-forwarded-for": "49.249.37.254, 49.249.37.254",
+            "referer": "http://localhost:3000/",
+            "accept-encoding": "gzip, br",
+            "priority": "u=1, i",
+            "if-none-match": "W/\"38-7w6Yh4zYWOPqhh2r3n2uNF/IBuM\"",
+            "cf-ray": "9e68cc583e4bac6d-MAA",
+            "accept-language": "en-US,en;q=0.9",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "origin": "http://localhost:3000",
+            "sec-fetch-site": "cross-site",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "49.249.37.254",
+            "cf-ipcountry": "IN",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "date": "2026-04-06",
+            "serviceType": "Shingle Roof Install",
+            "company_uid": "a7dc5d5d-e8e4-4eea-84d1-a718a51420f7"
+          },
+          "body": {},
+          "webhookUrl": "https://internalwf.zuper.co/webhook/dcb18184-a96b-4335-a7c2-7840d2900f9e",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Place Booking": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "internalwf.zuper.co",
+            "x-forwarded-for": "49.249.37.254, 49.249.37.254",
+            "content-length": "521",
+            "sec-fetch-dest": "empty",
+            "referer": "https://static.zuperpro.com/",
+            "priority": "u=1, i",
+            "accept-language": "en-US,en;q=0.9",
+            "cf-ray": "9e698dcfaca4a902-MAA",
+            "accept-encoding": "gzip, br",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+            "content-type": "application/json",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "origin": "https://static.zuperpro.com",
+            "sec-fetch-site": "cross-site",
+            "sec-fetch-mode": "cors",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "49.249.37.254",
+            "cf-ipcountry": "IN",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "company_uid": "a7dc5d5d-e8e4-4eea-84d1-a718a51420f7",
+            "serviceType": "Shingle Roof Install"
+          },
+          "body": {
+            "firstName": "Zuper",
+            "lastName": "Testing",
+            "phone": "+12122222222",
+            "email": "234per@gmail.com",
+            "serviceType": "Shingle Roof Install",
+            "address": "1237 Harding Pl, Charlotte, NC 28204, USA",
+            "street": "1237 Harding Place",
+            "city": "Charlotte",
+            "state": "NC",
+            "zipcode": "28204",
+            "latitude": "35.209511",
+            "longitude": "-80.8386479",
+            "selectedDate": "2026-04-06",
+            "selectedSlot": "4:00 PM - 5:00 PM",
+            "selectedUser": "e09140f0-9309-407d-a3f2-e93ccb7da9ea",
+            "start_time": "2026-04-06 21:00:00",
+            "end_time": "2026-04-06 22:00:00",
+            "marketingConsent": true
+          },
+          "webhookUrl": "https://internalwf.zuper.co/webhook/637cdaa8-968d-4120-83ca-3c35455e037c",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Get Slots": {
+      "main": [
+        [
+          {
+            "node": "Return Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Users": {
+      "main": [
+        [
+          {
+            "node": "Return Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Details": {
+      "main": [
+        [
+          {
+            "node": "If Customer is available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Customer is available": {
+      "main": [
+        [
+          {
+            "node": "Get Customer UID1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Customer Categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer UID": {
+      "main": [
+        [
+          {
+            "node": "Payload to create Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer UID1": {
+      "main": [
+        [
+          {
+            "node": "Payload to Create Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configs": {
+      "main": [
+        [
+          {
+            "node": "If Company Configs Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Slots": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Categories": {
+      "main": [
+        [
+          {
+            "node": "Find Job Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Job Category": {
+      "main": [
+        [
+          {
+            "node": "If Selected Category Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Company Configs Found": {
+      "main": [
+        [
+          {
+            "node": "Get Categories",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Selected Category Found": {
+      "main": [
+        [
+          {
+            "node": "Get Skills",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Users": {
+      "main": [
+        [
+          {
+            "node": "Get Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configs1": {
+      "main": [
+        [
+          {
+            "node": "Get Categories1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Categories1": {
+      "main": [
+        [
+          {
+            "node": "Find Job Category1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Job Category1": {
+      "main": [
+        [
+          {
+            "node": "If Valid Category Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Valid Category Found": {
+      "main": [
+        [
+          {
+            "node": "Get User Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload to Create Job": {
+      "main": [
+        [
+          {
+            "node": "Create Job1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Team": {
+      "main": [
+        [
+          {
+            "node": "Get Job Master CF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload to create Job": {
+      "main": [
+        [
+          {
+            "node": "Create Job2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload to Create Customer": {
+      "main": [
+        [
+          {
+            "node": "Create Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Customer": {
+      "main": [
+        [
+          {
+            "node": "Get Customer UID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Job2": {
+      "main": [
+        [
+          {
+            "node": "If Scheduled Status Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Scheduled Status Found": {
+      "main": [
+        [
+          {
+            "node": "Payload to Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload to Update Status": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Job1": {
+      "main": [
+        [
+          {
+            "node": "If Scheduled Status Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Job Master CF": {
+      "main": [
+        [
+          {
+            "node": "Get Customer Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Categories": {
+      "main": [
+        [
+          {
+            "node": "Get Customer Custom Fields Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Custom Fields Master": {
+      "main": [
+        [
+          {
+            "node": "Payload to Create Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Skills": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assisted Scheduling": {
+      "main": [
+        [
+          {
+            "node": "Configs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Slots",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Place Booking": {
+      "main": [
+        [
+          {
+            "node": "Configs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8632da95-e748-4423-837e-0bde48183a8f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6145e2f95387c30df4118d663c4b79fc953e0eb04df65c84f585f872c04c3233"
+  },
+  "id": "2Hi1DuyOvVCLbLQ0",
+  "tags": [
+    {
+      "createdAt": "2026-03-13T13:02:03.614Z",
+      "updatedAt": "2026-03-13T13:02:03.614Z",
+      "id": "tHdut7fsSLRGUefU",
+      "name": "zuperaj"
+    },
+    {
+      "createdAt": "2026-03-27T14:08:08.727Z",
+      "updatedAt": "2026-03-27T14:08:08.727Z",
+      "id": "xJpA3xWe5u8RDkM7",
+      "name": "booking_widget"
+    }
+  ]
+}

@@ -60,7 +60,9 @@ export interface AvailabilityData {
 }
 
 export interface ApiResponse {
-  type: string
+  type: string,
+  message?: string,
+  success?: boolean,
   data: {
     availability: AvailabilityData[]
     users: ApiUser[]

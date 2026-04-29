@@ -1,11 +1,24 @@
 "use client"
 
-import { User, Phone, Mail } from "lucide-react"
+import { User } from "lucide-react"
 import { useEffect, useRef } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
+import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
+
+const SERVICE_OPTIONS = [
+  "Shingle Roof Install",
+  "Shingle Roof Repair",
+  "Metal Roof Install",
+  "Metall Roof Repair ",
+  "Commercial Roof Install",
+  "Commercial Roof Repairs",
+  "Gutter Division  ",
+  "General Contracting",
+  "Solar Division ",
+]
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
@@ -44,7 +57,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              First Name <span className="text-red-500">*</span>
+            </label>
             <input
               ref={firstNameInputRef}
               type="text"
@@ -71,7 +86,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number
+            Phone Number <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -100,7 +115,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email
+            Email <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -121,6 +136,34 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           )}
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Service (For template, added here. If this is needed, add this field, otherwise remove this field)<span className="text-red-500">*</span>
+            {/* the options are added above in the variable SERVICE_OPTIONS */}
+          
+          </label>
+          <select
+            value={formData.serviceType}
+            onChange={(e) => onUpdateFormData("serviceType", e.target.value)}
+            required
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 bg-white ${
+              !formData.serviceType
+                ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+            }`}
+          >
+            <option value="">Select a service</option>
+            {SERVICE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          {!formData.serviceType && (
+            <p className="mt-1 text-sm text-red-600">Please select a service</p>
+          )}
+        </div>
+
         <div className="mt-6">
           <div className="flex items-start space-x-3">
             <input
@@ -132,9 +175,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from Maven Roofing. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
               <a 
-                href="https://www.mavenroof.com/terms-and-conditions/" 
+                href={TERMS_OF_SERVICE} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"
@@ -143,7 +186,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               </a>{" "}
               and{" "}
               <a 
-                href="https://www.mavenroof.com/privacy-policy/" 
+                href={PRIVACY_POLICY}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"
