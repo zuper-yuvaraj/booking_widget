@@ -1,4 +1,6 @@
 export interface FormData {
+  preferredDate: string
+  //jobType: string
   firstName: string
   lastName: string
   phone: string
