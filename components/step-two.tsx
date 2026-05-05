@@ -303,7 +303,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
         {/* Date */}
         <div>
           <label className={labelClass}>
-            Date <span className="text-red-500">*</span>
+           Preferred Date <span className="text-red-500">*</span>
           </label>
           <input
             type="date"

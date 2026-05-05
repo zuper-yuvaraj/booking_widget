@@ -250,6 +250,10 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
         )}
       </div>
 
+      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 -mt-3">
+        <span className="font-medium">Note:</span> If the map pin appears inaccurate, please continue to the next step and provide the correct location details in the Notes section so our team can assist you accurately.
+      </p>
+
       <div className="h-96 w-full rounded-lg overflow-hidden shadow-lg">
         <div ref={mapRef} className="w-full h-full bg-gray-200 flex items-center justify-center">
           {loadError ? (
