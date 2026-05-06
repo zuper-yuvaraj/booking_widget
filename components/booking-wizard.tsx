@@ -23,7 +23,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "inspection",
+    serviceType: "lead_qualification",
     address: "",
     street: "",
     city: "",
