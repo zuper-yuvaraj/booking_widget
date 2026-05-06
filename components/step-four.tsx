@@ -7,6 +7,8 @@ import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
+  const TOTAL_CALENDAR_DAYS = 14
+  const VISIBLE_CALENDAR_DAYS = 7
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     formData.selectedDate ? new Date(formData.selectedDate) : null,
   )
@@ -14,7 +16,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
-
+  const [weekOffset, setWeekOffset] = useState(0)
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
   console.log("Company UID from URL:", COMPANY_UID)
@@ -22,16 +24,16 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const generateCalendarDates = () => {
     const dates = []
     const today = new Date()
-    let i = 0
-    while (dates.length < 7) {
+  
+    // Show a 7-day sliding window inside a 14-day range.
+    for (let i = 0; i < VISIBLE_CALENDAR_DAYS; i++) {
       const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      // Skip Sundays (day 0)
-      if (date.getDay() !== 0) {
-        dates.push(date)
-      }
-      i++
+      date.setDate(today.getDate() + weekOffset + i)
+      const dayIndex = weekOffset + i
+      if (dayIndex >= TOTAL_CALENDAR_DAYS) break
+      dates.push(date)
     }
+  
     return dates
   }
 
@@ -263,25 +265,64 @@ const fetchAvailability = async (date: string) => {
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                }`}
-              >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
-              </button>
-            )
-          })}
-        </div>
+        <div className="flex items-center gap-3 mb-6">
+  {/* Left Arrow */}
+  <button
+    onClick={() => setWeekOffset((prev) => Math.max(prev - 1, 0))}
+    disabled={weekOffset === 0}
+    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+  >
+    ❮
+  </button>
+
+  {/* Dates */}
+  <div className="flex items-center gap-3 flex-1 justify-start">
+  {calendarDates.map((date, index) => {
+      const isSelected =
+        selectedDate &&
+        date.toDateString() === selectedDate.toDateString()
+
+      return (
+        <button
+          key={index}
+          onClick={() => handleDateSelect(date)}
+          className={`w-[86px] h-[78px] rounded-lg border transition-all flex flex-col items-center justify-center flex-shrink-0 ${
+            isSelected
+              ? "bg-primary text-white border-primary"
+              : "bg-white text-gray-700 border-gray-300 hover:border-primary hover:bg-primary/5"
+          }`}
+        >
+          <div className="text-[11px] font-medium">
+            {date.toLocaleDateString("en-US", {
+              weekday: "short",
+            })}
+          </div>
+
+          <div className="text-xl font-bold leading-none mt-1">
+            {date.getDate()}
+          </div>
+
+          <div className="text-[11px] mt-1">
+            {date.toLocaleDateString("en-US", {
+              month: "short",
+            })}
+          </div>
+        </button>
+      )
+    })}
+  </div>
+
+  {/* Right Arrow */}
+  <button
+    onClick={() =>
+      setWeekOffset((prev) => Math.min(prev + 1, TOTAL_CALENDAR_DAYS - VISIBLE_CALENDAR_DAYS))
+    }
+    disabled={weekOffset >= TOTAL_CALENDAR_DAYS - VISIBLE_CALENDAR_DAYS}
+    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+  >
+    ❯
+  </button>
+</div>
       </div>
 
       {selectedDate && (

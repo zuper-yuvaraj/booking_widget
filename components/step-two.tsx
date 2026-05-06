@@ -2,7 +2,6 @@
 
 import { User } from "lucide-react"
 import { useEffect, useRef } from "react"
-import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
@@ -10,6 +9,11 @@ import { COMPANY_NAME, PRIVACY_POLICY } from "@/configs"
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, isTouched }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
+  const getUsPhoneDigits = (phone: string) => phone.replace(/\D/g, "").slice(0, 10)
+  const isValidUsPhoneDigits = (digits: string) => {
+    if (!/^[2-9]\d{9}$/.test(digits)) return false
+    return isValidPhoneNumber(`+1${digits}`)
+  }
 
   const showErrors = isTouched && !isValid
 
@@ -25,11 +29,15 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
     }
   }
 
-  const handlePhoneChange = (value: string | undefined) => {
-    onUpdateFormData("phone", value || "")
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = getUsPhoneDigits(e.target.value)
+    if (digits !== formData.phone) {
+      onUpdateFormData("phone", digits)
+    }
   }
+  const phoneDisplayValue = formData.phone || ""
 
-  const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : true
+  const isPhoneValid = formData.phone ? isValidUsPhoneDigits(formData.phone) : true
   const showPhoneError = formData.phone && !isPhoneValid && (showErrors || formData.phone.length > 0)
 
   const isEmailValid = formData.email ? isValidEmail(formData.email) : true
@@ -117,9 +125,11 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <span className="text-gray-500 text-sm">+1</span>
             </div>
-            <PhoneInput
-              country="US"
-              value={formData.phone}
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              value={phoneDisplayValue}
               onChange={handlePhoneChange}
               onKeyPress={handleKeyPress}
               placeholder="Enter your phone number"

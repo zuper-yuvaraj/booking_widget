@@ -49,7 +49,22 @@ export default function BookingWizard() {
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
   const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      if (prev[field] === value) {
+        return prev
+      }
+      return { ...prev, [field]: value }
+    })
+  }
+
+  const getPhoneE164 = (rawPhone: string) => {
+    const digits = rawPhone.replace(/\D/g, "")
+    return digits.length === 10 ? `+1${digits}` : rawPhone
+  }
+
+  const isValidUsPhoneDigits = (digits: string) => {
+    if (!/^[2-9]\d{9}$/.test(digits)) return false
+    return isValidPhoneNumber(`+1${digits}`)
   }
 
   const isStep1Valid = () => {
@@ -65,7 +80,7 @@ export default function BookingWizard() {
       (formData.isNeeecoEmployee === "yes" || formData.isNeeecoEmployee === "no")
     )
 
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
+    const isPhoneValid = formData.phone ? isValidUsPhoneDigits(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const isEmployeeDependentValid = formData.isNeeecoEmployee === "yes"
       ? !!formData.outreachTeamMember
@@ -101,7 +116,7 @@ export default function BookingWizard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, job_description: formData.notes })
+        body: JSON.stringify({ ...formData, phone: getPhoneE164(formData.phone), job_description: formData.notes })
       })
       
       if (!response.ok) {
