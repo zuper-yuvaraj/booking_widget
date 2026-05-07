@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
@@ -38,6 +38,9 @@ export default function BookingWizard() {
     end_time: "",
     marketingConsent: false,
   })
+
+  const step3BackRef = useRef<(() => void) | null>(null)
+  const step3FlowStepRef = useRef<string>("main")
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
@@ -118,7 +121,15 @@ export default function BookingWizard() {
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
       case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
+        return (
+          <StepThree
+            {...stepProps}
+            isValid={isStep3Valid()}
+            backRef={step3BackRef}
+            initialFlowStep={step3FlowStepRef.current}
+            onFlowStepChange={(step) => { step3FlowStepRef.current = step }}
+          />
+        )
       case 4:
         return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
@@ -165,7 +176,13 @@ export default function BookingWizard() {
           <div className="border-t border-gray-200 px-6 py-4">
             <div className="flex justify-between">
               <button
-                onClick={prevStep}
+                onClick={() => {
+                  if (currentStep === 3 && step3BackRef.current) {
+                    step3BackRef.current()
+                  } else {
+                    prevStep()
+                  }
+                }}
                 disabled={currentStep === 1}
                 className={`flex items-center px-4 py-2 rounded-md transition-colors ${
                   currentStep === 1 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"

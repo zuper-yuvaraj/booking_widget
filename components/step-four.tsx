@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
 import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
@@ -14,6 +14,17 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
+  const [localNotes, setLocalNotes] = useState("")
+  const baseNotesRef = useRef(formData.notes)
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const raw = e.target.value
+    setLocalNotes(raw)
+    const htmlWrapped = raw.trim()
+      ? raw.split("\n").filter(l => l.trim()).map(l => `<p>${l}</p>`).join("")
+      : ""
+    onUpdateFormData("notes", baseNotesRef.current + htmlWrapped)
+  }
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") ||COMPANY_UUID
@@ -22,7 +33,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const generateCalendarDates = () => {
     const dates = []
     const today = new Date()
-    let i = 0
+    let i = 1
     while (dates.length < 7) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
@@ -154,12 +165,14 @@ const formatDateOnly = (date: Date) => {
       return []
     }
 
-    // Check if selected date is today
-    const today = new Date().toISOString().split('T')[0]
-    const isToday = formData.selectedDate === today
-    console.log("IS TODAY", isToday)
-    const currentTime = new Date()
-    const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000) // 1 hour from now
+    // 24-hour buffer: compute cutoff rounded up to the next full hour
+    const now = new Date()
+    const cutoff = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    if (cutoff.getMinutes() > 0 || cutoff.getSeconds() > 0 || cutoff.getMilliseconds() > 0) {
+      cutoff.setHours(cutoff.getHours() + 1, 0, 0, 0)
+    } else {
+      cutoff.setMinutes(0, 0, 0)
+    }
 
     // Group slots by users with original slot data
     const userSlotMap = new Map<string, { user: ApiUser; slots: Array<{ display: string; original: TimeSlot }> }>()
@@ -170,28 +183,29 @@ const formatDateOnly = (date: Date) => {
     };
 
     selectedDateData.slots.forEach((slot: TimeSlot) => {
-      // Filter out slots that are less than 1 hour ahead if today
-      if (isToday) {
-        const slotStartTime = new Date(slot.start_time.replace(' ', 'T') + 'Z');
-        if (slotStartTime <= oneHourFromNow) {
-          return // Skip this slot
-        }
+      // Skip any slot starting within 24 hours from now (next full hour boundary)
+      const slotStartTime = new Date(parseUTCDateTime(slot.start_time).toLocaleString('en-US', { timeZone: TIME_ZONE }))
+      
+      if (slotStartTime < cutoff) {
+        return
       }
       
       
+      const fromTime = parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true,
+        timeZone: TIME_ZONE
+      })
 
+      const endTime = parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true,
+        timeZone: TIME_ZONE
+      })
       // Convert UTC to EST for UI display
-      const timeRange = `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: TIME_ZONE
-      })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: TIME_ZONE
-      })}`
+      const timeRange = `${fromTime} - ${endTime}`
       
       slot.users.forEach((userId: string) => {
         const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
@@ -207,10 +221,10 @@ const formatDateOnly = (date: Date) => {
       })
     })
 
-    return Array.from(userSlotMap.values()).map(({ user, slots }) => ({
+    return Array.from(userSlotMap.values()).map(({ user, slots }, index) => ({
       id: user.user_uid,
-      name: `${user.first_name} ${user.last_name}`,
-      avatar: user.profile_picture,
+      name: `Technician ${index + 1}`,// `${user.first_name} ${user.last_name}`,
+      avatar: "https://s3.ap-south-1.amazonaws.com/prod.app.zuperpro/assets/profile_picture.jpg",
       description: `${user.bio || ''}`,
       slots: slots
     }))
@@ -354,35 +368,48 @@ const formatDateOnly = (date: Date) => {
       )}
 
       {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
-            <p>
-              <strong>Name:</strong> {formData.firstName} {formData.lastName}
-            </p>
-            <p>
-              <strong>Phone:</strong> {formData.phone}
-            </p>
-            <p>
-              <strong>Email:</strong> {formData.email}
-            </p>
-            <p>
-              <strong>Address:</strong> {formData.address}
-            </p>
-            <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
-            </p>
-            <p>
-              <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
-            </p>
-            <p>
-              <strong>Professional:</strong> {selectedUser.name}
-            </p>
-            <p>
-              <strong>Time:</strong> {formData.selectedSlot}
-            </p>
+        <>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
+            <div className="space-y-2 text-sm text-green-800">
+              <p>
+                <strong>Name:</strong> {formData.firstName} {formData.lastName}
+              </p>
+              <p>
+                <strong>Phone:</strong> {formData.phone}
+              </p>
+              <p>
+                <strong>Email:</strong> {formData.email}
+              </p>
+              <p>
+                <strong>Address:</strong> {formData.address}
+              </p>
+              <p>
+                <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
+              </p>
+              <p>
+                <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
+              </p>
+              <p>
+                <strong>Professional:</strong> {selectedUser.name}
+              </p>
+              <p>
+                <strong>Time:</strong> {formData.selectedSlot}
+              </p>
+            </div>
           </div>
-        </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <textarea
+              value={localNotes}
+              onChange={handleNotesChange}
+              rows={4}
+              placeholder="Add any additional notes or instructions..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+            />
+          </div>
+        </>
       )}
     </div>
   )

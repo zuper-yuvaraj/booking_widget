@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronLeft } from "lucide-react"
+import { useState, type MutableRefObject } from "react"
 import type { StepProps } from "@/types/booking"
 
 type FlowStep =
@@ -13,8 +12,23 @@ type FlowStep =
   | "tuneup-waterheater-type"
   | "newsystem-replace"
 
-export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const [flowStep, setFlowStep] = useState<FlowStep>("main")
+export default function StepThree({
+  formData,
+  onUpdateFormData,
+  backRef,
+  initialFlowStep = "main",
+  onFlowStepChange,
+}: StepProps & {
+  backRef?: MutableRefObject<(() => void) | null>
+  initialFlowStep?: string
+  onFlowStepChange?: (step: string) => void
+}) {
+  const [flowStep, setFlowStep] = useState<FlowStep>(initialFlowStep as FlowStep)
+
+  const updateFlowStep = (step: FlowStep) => {
+    setFlowStep(step)
+    onFlowStepChange?.(step)
+  }
   const [mainChoice, setMainChoice] = useState<string | null>(null)
   const [mainChoiceLabel, setMainChoiceLabel] = useState<string | null>(null)
   const [diagnosticSystem, setDiagnosticSystem] = useState<string | null>(null)
@@ -31,18 +45,18 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
       setDiagnosticSystem(null)
-      setFlowStep("diagnostic-system")
+      updateFlowStep("diagnostic-system")
     } else if (choice === "tuneup") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
       setTuneUpSystem(null)
       setTuneUpSystemLabel(null)
-      setFlowStep("tuneup-system")
+      updateFlowStep("tuneup-system")
     } else if (choice === "newsystem") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
       setNewSystemOption(null)
-      setFlowStep("newsystem-replace")
+      updateFlowStep("newsystem-replace")
     }
   }
 
@@ -62,11 +76,11 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     if (system === "heating") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
-      setFlowStep("tuneup-heating-type")
+      updateFlowStep("tuneup-heating-type")
     } else if (system === "cooling") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
-      setFlowStep("tuneup-cooling-type")
+      updateFlowStep("tuneup-cooling-type")
     } else if (system === "ductless") {
       const notes = buildNotes([
         `What are you looking to schedule?: ${mainChoiceLabel}`,
@@ -77,7 +91,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     } else if (system === "waterheater") {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
-      setFlowStep("tuneup-waterheater-type")
+      updateFlowStep("tuneup-waterheater-type")
     }
   }
 
@@ -143,10 +157,10 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     onUpdateFormData("serviceType", "")
     onUpdateFormData("notes", "")
     if (flowStep === "diagnostic-system") {
-      setFlowStep("main")
+      updateFlowStep("main")
       setDiagnosticSystem(null)
     } else if (flowStep === "tuneup-system") {
-      setFlowStep("main")
+      updateFlowStep("main")
       setTuneUpSystem(null)
       setTuneUpSystemLabel(null)
     } else if (
@@ -154,13 +168,18 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
       flowStep === "tuneup-cooling-type" ||
       flowStep === "tuneup-waterheater-type"
     ) {
-      setFlowStep("tuneup-system")
+      updateFlowStep("tuneup-system")
       setTuneUpSystem(null)
       setTuneUpSystemLabel(null)
     } else if (flowStep === "newsystem-replace") {
-      setFlowStep("main")
+      updateFlowStep("main")
       setNewSystemOption(null)
     }
+  }
+
+  // Keep the wizard's back button in sync with step-three's internal nav state
+  if (backRef) {
+    backRef.current = flowStep !== "main" ? goBack : null
   }
 
   function SelectionCard({
@@ -211,18 +230,6 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
     )
   }
 
-  function BackButton() {
-    return (
-      <button
-        onClick={goBack}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ChevronLeft className="w-4 h-4 mr-1" />
-        Back
-      </button>
-    )
-  }
-
   // ── Main screen ──────────────────────────────────────────────────────────────
   if (flowStep === "main") {
     return (
@@ -269,8 +276,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system is this for?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -299,8 +305,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system is this for?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -328,8 +333,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of heating system do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -357,8 +361,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of cooling system do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -386,8 +389,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of water heater do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -418,8 +420,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        <BackButton />
-        <div className="text-center mb-8">
+<div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system are you looking to replace or install?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
