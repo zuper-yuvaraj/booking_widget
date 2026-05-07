@@ -23,7 +23,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     const htmlWrapped = raw.trim()
       ? raw.split("\n").filter(l => l.trim()).map(l => `<p>${l}</p>`).join("")
       : ""
-    onUpdateFormData("notes", baseNotesRef.current + htmlWrapped)
+    onUpdateFormData("notes", baseNotesRef.current + "<p>Additional Notes : </p>" + htmlWrapped)
   }
 
   const searchParams = useQueryParams();
@@ -182,10 +182,18 @@ const formatDateOnly = (date: Date) => {
       return new Date(dateTimeString.replace(' ', 'T') + 'Z');
     };
 
+    const ALLOWED_HOURS = [8, 10, 12]
+
     selectedDateData.slots.forEach((slot: TimeSlot) => {
-      // Skip any slot starting within 24 hours from now (next full hour boundary)
+      // Convert to TIME_ZONE wall-clock for all time-based checks
       const slotStartTime = new Date(parseUTCDateTime(slot.start_time).toLocaleString('en-US', { timeZone: TIME_ZONE }))
-      
+
+      // Only allow slots at 8 AM, 10 AM, 12 PM in TIME_ZONE
+      if (!ALLOWED_HOURS.includes(slotStartTime.getHours())) {
+        return
+      }
+
+      // Skip slots within the 24-hour buffer
       if (slotStartTime < cutoff) {
         return
       }
@@ -198,8 +206,10 @@ const formatDateOnly = (date: Date) => {
         timeZone: TIME_ZONE
       })
 
-      const endTime = parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
+      const endTimeDate = parseUTCDateTime(slot.end_time)
+      endTimeDate.setTime(endTimeDate.getTime() + 60 * 60 * 1000)
+      const endTime = endTimeDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
         minute: '2-digit',
         hour12: true,
         timeZone: TIME_ZONE
@@ -223,7 +233,7 @@ const formatDateOnly = (date: Date) => {
 
     return Array.from(userSlotMap.values()).map(({ user, slots }, index) => ({
       id: user.user_uid,
-      name: `Technician ${index + 1}`,// `${user.first_name} ${user.last_name}`,
+      name:  `Technician ${index + 1}`,// `${user.first_name} ${user.last_name}`,
       avatar: "https://s3.ap-south-1.amazonaws.com/prod.app.zuperpro/assets/profile_picture.jpg",
       description: `${user.bio || ''}`,
       slots: slots
@@ -384,15 +394,15 @@ const formatDateOnly = (date: Date) => {
               <p>
                 <strong>Address:</strong> {formData.address}
               </p>
-              <p>
+              {/* <p>
                 <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
-              </p>
+              </p> */}
               <p>
                 <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
               </p>
-              <p>
+              {/* <p>
                 <strong>Professional:</strong> {selectedUser.name}
-              </p>
+              </p> */}
               <p>
                 <strong>Time:</strong> {formData.selectedSlot}
               </p>

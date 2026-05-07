@@ -59,14 +59,27 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="text-gray-600">Email:</span>
             <span className="font-medium">{formData.email}</span>
           </div>
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <span className="text-gray-600">Service:</span>
             <span className="font-medium capitalize">{formData.serviceType}</span>
-          </div>
+          </div> */}
           <div className="flex justify-between">
             <span className="text-gray-600">Address:</span>
             <span className="font-medium">{formData.address}</span>
           </div>
+          {(() => {
+            const userNotes = formData.notes
+              ?.split('<p>Additional Notes : </p>')[1]
+              ?.replace(/<\/p><p>/g, '\n')
+              ?.replace(/<[^>]*>/g, '')
+              ?.trim()
+            return userNotes ? (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Notes:</span>
+                <span className="font-medium text-right max-w-xs whitespace-pre-line">{userNotes}</span>
+              </div>
+            ) : null
+          })()}
         </div>
       </div>
 
