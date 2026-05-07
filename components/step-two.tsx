@@ -6,7 +6,7 @@ import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
+import { COMPANY_NAME, PRIVACY_POLICY } from "@/configs"
 
 export default function StepTwo({
   formData,
@@ -250,15 +250,6 @@ export default function StepTwo({
 
              <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
               By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
-              <a 
-                href={TERMS_OF_SERVICE} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
-              >
-                Terms of Service
-              </a>{" "}
-              and{" "}
               <a 
                 href={PRIVACY_POLICY}
                 target="_blank" 

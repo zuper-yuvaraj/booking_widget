@@ -1,5 +1,6 @@
 export interface FormData {
   preferredDate: string
+  company_uid: string
   //jobType: string
   firstName: string
   lastName: string

@@ -37,6 +37,7 @@ export default function BookingWizard() {
     start_time: "",
     end_time: "",
     preferredDate: "",
+    company_uid: COMPANY_ID,
     //jobType: "",
     marketingConsent: false,
   })
