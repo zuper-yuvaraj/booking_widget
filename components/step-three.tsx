@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type MutableRefObject } from "react"
+import { useState, useEffect, type MutableRefObject } from "react"
 import type { StepProps } from "@/types/booking"
 
 type FlowStep =
@@ -12,16 +12,36 @@ type FlowStep =
   | "tuneup-waterheater-type"
   | "newsystem-replace"
 
+type Step3Selections = {
+  mainChoice: string | null
+  mainChoiceLabel: string | null
+  diagnosticSystem: string | null
+  tuneUpSystem: string | null
+  tuneUpSystemLabel: string | null
+  newSystemOption: string | null
+  heatingType: string | null
+  coolingType: string | null
+  waterHeaterType: string | null
+}
+
 export default function StepThree({
   formData,
   onUpdateFormData,
   backRef,
+  continueRef,
+  onContinueStateChange,
   initialFlowStep = "main",
   onFlowStepChange,
+  initialSelections,
+  onSelectionsChange,
 }: StepProps & {
   backRef?: MutableRefObject<(() => void) | null>
+  continueRef?: MutableRefObject<(() => void) | null>
+  onContinueStateChange?: (enabled: boolean | null) => void
   initialFlowStep?: string
   onFlowStepChange?: (step: string) => void
+  initialSelections?: Step3Selections
+  onSelectionsChange?: (sel: Partial<Step3Selections>) => void
 }) {
   const [flowStep, setFlowStep] = useState<FlowStep>(initialFlowStep as FlowStep)
 
@@ -29,39 +49,71 @@ export default function StepThree({
     setFlowStep(step)
     onFlowStepChange?.(step)
   }
-  const [mainChoice, setMainChoice] = useState<string | null>(null)
-  const [mainChoiceLabel, setMainChoiceLabel] = useState<string | null>(null)
-  const [diagnosticSystem, setDiagnosticSystem] = useState<string | null>(null)
-  const [tuneUpSystem, setTuneUpSystem] = useState<string | null>(null)
-  const [tuneUpSystemLabel, setTuneUpSystemLabel] = useState<string | null>(null)
-  const [newSystemOption, setNewSystemOption] = useState<string | null>(null)
+
+  const [mainChoice, setMainChoice] = useState<string | null>(initialSelections?.mainChoice ?? null)
+  const [mainChoiceLabel, setMainChoiceLabel] = useState<string | null>(initialSelections?.mainChoiceLabel ?? null)
+  const [diagnosticSystem, setDiagnosticSystem] = useState<string | null>(initialSelections?.diagnosticSystem ?? null)
+  const [tuneUpSystem, setTuneUpSystem] = useState<string | null>(initialSelections?.tuneUpSystem ?? null)
+  const [tuneUpSystemLabel, setTuneUpSystemLabel] = useState<string | null>(initialSelections?.tuneUpSystemLabel ?? null)
+  const [newSystemOption, setNewSystemOption] = useState<string | null>(initialSelections?.newSystemOption ?? null)
+  const [heatingType, setHeatingType] = useState<string | null>(initialSelections?.heatingType ?? null)
+  const [coolingType, setCoolingType] = useState<string | null>(initialSelections?.coolingType ?? null)
+  const [waterHeaterType, setWaterHeaterType] = useState<string | null>(initialSelections?.waterHeaterType ?? null)
 
   const buildNotes = (lines: string[]) => lines.map((line) => `<p>${line}</p>`).join("")
 
+  // ── Internal continue actions ────────────────────────────────────────────────
+  const handleMainContinue = () => {
+    onUpdateFormData("serviceType", "")
+    onUpdateFormData("notes", "")
+    if (mainChoice === "diagnostic") updateFlowStep("diagnostic-system")
+    else if (mainChoice === "tuneup") updateFlowStep("tuneup-system")
+    else if (mainChoice === "newsystem") updateFlowStep("newsystem-replace")
+  }
+
+  const handleTuneUpSystemContinue = () => {
+    onUpdateFormData("serviceType", "")
+    onUpdateFormData("notes", "")
+    if (tuneUpSystem === "heating") updateFlowStep("tuneup-heating-type")
+    else if (tuneUpSystem === "cooling") updateFlowStep("tuneup-cooling-type")
+    else if (tuneUpSystem === "waterheater") updateFlowStep("tuneup-waterheater-type")
+  }
+
+  // ── Sync continueRef during render (refs are safe to set synchronously) ──────
+  if (continueRef) {
+    if (flowStep === "main" && mainChoice) {
+      continueRef.current = handleMainContinue
+    } else if (flowStep === "tuneup-system" && tuneUpSystem && tuneUpSystem !== "ductless") {
+      continueRef.current = handleTuneUpSystemContinue
+    } else {
+      continueRef.current = null
+    }
+  }
+
+  // ── Notify wizard when internal-step validity changes ─────────────────────────
+  useEffect(() => {
+    switch (flowStep) {
+      case "main":                    onContinueStateChange?.(!!mainChoice); break
+      case "tuneup-system":           onContinueStateChange?.(!!tuneUpSystem); break
+      case "tuneup-heating-type":     onContinueStateChange?.(!!heatingType); break
+      case "tuneup-cooling-type":     onContinueStateChange?.(!!coolingType); break
+      case "tuneup-waterheater-type": onContinueStateChange?.(!!waterHeaterType); break
+      case "diagnostic-system":       onContinueStateChange?.(!!diagnosticSystem); break
+      case "newsystem-replace":       onContinueStateChange?.(!!newSystemOption); break
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowStep, mainChoice, tuneUpSystem, heatingType, coolingType, waterHeaterType, diagnosticSystem, newSystemOption])
+
+  // ── Card click handlers (select only, no auto-advance) ───────────────────────
   const handleMainSelect = (choice: string, label: string) => {
     setMainChoice(choice)
     setMainChoiceLabel(label)
-    if (choice === "diagnostic") {
-      onUpdateFormData("serviceType", "")
-      onUpdateFormData("notes", "")
-      setDiagnosticSystem(null)
-      updateFlowStep("diagnostic-system")
-    } else if (choice === "tuneup") {
-      onUpdateFormData("serviceType", "")
-      onUpdateFormData("notes", "")
-      setTuneUpSystem(null)
-      setTuneUpSystemLabel(null)
-      updateFlowStep("tuneup-system")
-    } else if (choice === "newsystem") {
-      onUpdateFormData("serviceType", "")
-      onUpdateFormData("notes", "")
-      setNewSystemOption(null)
-      updateFlowStep("newsystem-replace")
-    }
+    onSelectionsChange?.({ mainChoice: choice, mainChoiceLabel: label })
   }
 
   const handleDiagnosticSystemSelect = (system: string, label: string) => {
     setDiagnosticSystem(system)
+    onSelectionsChange?.({ diagnosticSystem: system })
     const notes = buildNotes([
       `What are you looking to schedule?: ${mainChoiceLabel}`,
       `What system is this for?: ${label}`,
@@ -73,25 +125,17 @@ export default function StepThree({
   const handleTuneUpSystemSelect = (system: string, label: string) => {
     setTuneUpSystem(system)
     setTuneUpSystemLabel(label)
-    if (system === "heating") {
-      onUpdateFormData("serviceType", "")
-      onUpdateFormData("notes", "")
-      updateFlowStep("tuneup-heating-type")
-    } else if (system === "cooling") {
-      onUpdateFormData("serviceType", "")
-      onUpdateFormData("notes", "")
-      updateFlowStep("tuneup-cooling-type")
-    } else if (system === "ductless") {
+    onSelectionsChange?.({ tuneUpSystem: system, tuneUpSystemLabel: label })
+    if (system === "ductless") {
       const notes = buildNotes([
         `What are you looking to schedule?: ${mainChoiceLabel}`,
         `What system is this for?: ${label}`,
       ])
       onUpdateFormData("serviceType", "DuctlessMiniSplit-Maint/TU")
       onUpdateFormData("notes", notes)
-    } else if (system === "waterheater") {
+    } else {
       onUpdateFormData("serviceType", "")
       onUpdateFormData("notes", "")
-      updateFlowStep("tuneup-waterheater-type")
     }
   }
 
@@ -113,7 +157,9 @@ export default function StepThree({
     notsure: "Diagnostic",
   }
 
-  const handleHeatingTypeSelect = (typeLabel: string, serviceType: string) => {
+  const handleHeatingTypeSelect = (typeId: string, typeLabel: string, serviceType: string) => {
+    setHeatingType(typeId)
+    onSelectionsChange?.({ heatingType: typeId })
     const notes = buildNotes([
       `What are you looking to schedule?: ${mainChoiceLabel}`,
       `What system is this for?: ${tuneUpSystemLabel}`,
@@ -123,7 +169,9 @@ export default function StepThree({
     onUpdateFormData("notes", notes)
   }
 
-  const handleCoolingTypeSelect = (typeLabel: string, serviceType: string) => {
+  const handleCoolingTypeSelect = (typeId: string, typeLabel: string, serviceType: string) => {
+    setCoolingType(typeId)
+    onSelectionsChange?.({ coolingType: typeId })
     const notes = buildNotes([
       `What are you looking to schedule?: ${mainChoiceLabel}`,
       `What system is this for?: ${tuneUpSystemLabel}`,
@@ -133,7 +181,9 @@ export default function StepThree({
     onUpdateFormData("notes", notes)
   }
 
-  const handleWaterHeaterTypeSelect = (typeLabel: string, serviceType: string) => {
+  const handleWaterHeaterTypeSelect = (typeId: string, typeLabel: string, serviceType: string) => {
+    setWaterHeaterType(typeId)
+    onSelectionsChange?.({ waterHeaterType: typeId })
     const notes = buildNotes([
       `What are you looking to schedule?: ${mainChoiceLabel}`,
       `What system is this for?: ${tuneUpSystemLabel}`,
@@ -145,6 +195,7 @@ export default function StepThree({
 
   const handleNewSystemSelect = (optionId: string, optionLabel: string) => {
     setNewSystemOption(optionId)
+    onSelectionsChange?.({ newSystemOption: optionId })
     const notes = buildNotes([
       `What are you looking to schedule?: ${mainChoiceLabel}`,
       `What system are you looking to replace or install?: ${optionLabel}`,
@@ -153,31 +204,25 @@ export default function StepThree({
     onUpdateFormData("notes", notes)
   }
 
+  // ── Back navigation — preserve UI selections so they remain highlighted ───────
   const goBack = () => {
     onUpdateFormData("serviceType", "")
     onUpdateFormData("notes", "")
     if (flowStep === "diagnostic-system") {
       updateFlowStep("main")
-      setDiagnosticSystem(null)
     } else if (flowStep === "tuneup-system") {
       updateFlowStep("main")
-      setTuneUpSystem(null)
-      setTuneUpSystemLabel(null)
     } else if (
       flowStep === "tuneup-heating-type" ||
       flowStep === "tuneup-cooling-type" ||
       flowStep === "tuneup-waterheater-type"
     ) {
       updateFlowStep("tuneup-system")
-      setTuneUpSystem(null)
-      setTuneUpSystemLabel(null)
     } else if (flowStep === "newsystem-replace") {
       updateFlowStep("main")
-      setNewSystemOption(null)
     }
   }
 
-  // Keep the wizard's back button in sync with step-three's internal nav state
   if (backRef) {
     backRef.current = flowStep !== "main" ? goBack : null
   }
@@ -276,7 +321,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system is this for?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -305,7 +350,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system is this for?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -333,7 +378,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of heating system do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -342,8 +387,8 @@ export default function StepThree({
               key={type.id}
               title={type.title}
               description={type.description}
-              isSelected={formData.serviceType === heatingServiceMap[type.id]}
-              onClick={() => handleHeatingTypeSelect(type.title, heatingServiceMap[type.id])}
+              isSelected={heatingType === type.id}
+              onClick={() => handleHeatingTypeSelect(type.id, type.title, heatingServiceMap[type.id])}
             />
           ))}
         </div>
@@ -361,7 +406,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of cooling system do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -370,8 +415,8 @@ export default function StepThree({
               key={type.id}
               title={type.title}
               description={type.description}
-              isSelected={formData.serviceType === coolingServiceMap[type.id]}
-              onClick={() => handleCoolingTypeSelect(type.title, coolingServiceMap[type.id])}
+              isSelected={coolingType === type.id}
+              onClick={() => handleCoolingTypeSelect(type.id, type.title, coolingServiceMap[type.id])}
             />
           ))}
         </div>
@@ -389,7 +434,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Which type of water heater do you have?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -398,8 +443,8 @@ export default function StepThree({
               key={type.id}
               title={type.title}
               description={type.description}
-              isSelected={formData.serviceType === waterHeaterServiceMap[type.id]}
-              onClick={() => handleWaterHeaterTypeSelect(type.title, waterHeaterServiceMap[type.id])}
+              isSelected={waterHeaterType === type.id}
+              onClick={() => handleWaterHeaterTypeSelect(type.id, type.title, waterHeaterServiceMap[type.id])}
             />
           ))}
         </div>
@@ -420,7 +465,7 @@ export default function StepThree({
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-<div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-gray-900">What system are you looking to replace or install?</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

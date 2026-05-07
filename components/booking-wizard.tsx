@@ -40,7 +40,21 @@ export default function BookingWizard() {
   })
 
   const step3BackRef = useRef<(() => void) | null>(null)
+  const step3ContinueRef = useRef<(() => void) | null>(null)
   const step3FlowStepRef = useRef<string>("main")
+  const step3SelectionsRef = useRef({
+    mainChoice: null as string | null,
+    mainChoiceLabel: null as string | null,
+    diagnosticSystem: null as string | null,
+    tuneUpSystem: null as string | null,
+    tuneUpSystemLabel: null as string | null,
+    newSystemOption: null as string | null,
+    heatingType: null as string | null,
+    coolingType: null as string | null,
+    waterHeaterType: null as string | null,
+  })
+  // null = terminal step (use isStep3Valid); true/false = internal step (selection made / not made)
+  const [step3InternalEnabled, setStep3InternalEnabled] = useState<boolean | null>(null)
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
@@ -126,8 +140,12 @@ export default function BookingWizard() {
             {...stepProps}
             isValid={isStep3Valid()}
             backRef={step3BackRef}
+            continueRef={step3ContinueRef}
+            onContinueStateChange={setStep3InternalEnabled}
             initialFlowStep={step3FlowStepRef.current}
             onFlowStepChange={(step) => { step3FlowStepRef.current = step }}
+            initialSelections={step3SelectionsRef.current}
+            onSelectionsChange={(sel) => { Object.assign(step3SelectionsRef.current, sel) }}
           />
         )
       case 4:
@@ -194,16 +212,22 @@ export default function BookingWizard() {
 
               {currentStep < 4 ? (
                 <button
-                  onClick={nextStep}
+                  onClick={() => {
+                    if (currentStep === 3 && step3ContinueRef.current) {
+                      step3ContinueRef.current()
+                    } else {
+                      nextStep()
+                    }
+                  }}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
                     (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 3 && !step3InternalEnabled)
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
                     (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 3 && !step3InternalEnabled)
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
