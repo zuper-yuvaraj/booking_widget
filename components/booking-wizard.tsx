@@ -2,23 +2,28 @@
 
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { isValidPhoneNumber } from "react-phone-number-input"
-import { isValidEmail } from "@/lib/utils"
+import { isValidEmail, isValidUSPhoneNumber } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
+import StepThree from "./step-three"
+import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { ASSISTED_SCHEDULING_WEBHOOK, COMPANY_UID, timezone } from "@/configs"
 
-// Fix 1: Moved parseInspectionTime out of the component so it's defined before use
 const parseInspectionTime = (timeRange: string) => {
   if (!timeRange) return { start: "", end: "" }
 
   const [start, end] = timeRange.split(" to ")
+  if (!start?.trim() || !end?.trim()) return { start: "", end: "" }
 
   const formatTo24Hour = (time: string) => {
-    const [hourStr, modifier] = time.trim().split(" ")
+    const parts = time.trim().split(" ")
+    const hourStr = parts[0]
+    const modifier = parts[1]
+    if (!hourStr || !modifier) return ""
     let hour = parseInt(hourStr, 10)
+    if (Number.isNaN(hour)) return ""
 
     if (modifier === "PM" && hour !== 12) hour += 12
     if (modifier === "AM" && hour === 12) hour = 0
@@ -32,21 +37,36 @@ const parseInspectionTime = (timeRange: string) => {
   }
 }
 
+const ROOF_PITCH_LABELS: Record<string, string> = {
+  flat: "Flat",
+  low: "Low",
+  moderate: "Moderate",
+  steep: "Steep",
+}
+
+const ROOF_TYPE_LABELS: Record<string, string> = {
+  asphalt: "Asphalt",
+  metal: "Metal",
+  tile: "Tile",
+}
+
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [step2Touched, setStep2Touched] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Fix 2: formData defined before any usage; added missing preferredTimeOptions field
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
     preferredInspectionTime: "",
-    preferredTimeOptions: [],        // Fix 3: was missing from initial state
+    preferredTimeOptions: [],
     serviceType: "lead_qualification",
+    roofPitch: "",
+    roofType: "",
+    termsAccepted: false,
     address: "",
     street: "",
     city: "",
@@ -59,21 +79,17 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
-    claimType: undefined,
-    filedClaim: undefined,
-    insuranceCompany: "",
-    referralName: "",
-    sourceOfLead: "",
-    additionalComments: "",
     marketingConsent: false,
+    sourceOfLead: "",
+    referralName: "",
+    additionalComments: "",
   })
 
   const finalCompanyUid = COMPANY_UID
 
-  const handleUpdateFormData = (field: keyof FormData, value: string | boolean | string[]) => {
+  const handleUpdateFormData = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
-      // Whenever preferredInspectionTime changes, parse and sync start_time / end_time
       if (field === "preferredInspectionTime" && typeof value === "string") {
         const { start, end } = parseInspectionTime(value)
         updated.start_time = start
@@ -83,57 +99,47 @@ export default function BookingWizard() {
     })
   }
 
-  const isStep1Valid = () => {
-    return !!formData.address
-  }
+  const isStep1Valid = () => !!formData.address
 
-  const isStep2Valid = () => {
-    const hasRequiredFields = !!(
-      formData.firstName?.trim() &&
-      formData.lastName?.trim() &&
-      formData.phone &&
-      formData.email &&
-      formData.preferredInspectionTime &&
-      (formData.preferredTimeOptions || []).length > 0 &&  // Fix 4: validate checkbox selection
-      formData.claimType &&
-      formData.filedClaim &&
-      formData.insuranceCompany &&
-      formData.sourceOfLead && formData.marketingConsent !== undefined
-      // Fix 5: additionalComments removed — it's optional, not required
-    )
+  const isStep2Valid = () => !!formData.roofPitch
 
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
-    const isEmailValid = formData.email ? isValidEmail(formData.email) : false
+  const isStep3Valid = () => !!formData.roofType
 
-    const isConsentGiven = formData.marketingConsent === true
-
-    return hasRequiredFields && isPhoneValid && isEmailValid && isConsentGiven
+  const isStep4Valid = () => {
+    const firstOk = !!formData.firstName?.trim()
+    const lastOk = !!formData.lastName?.trim()
+    const phoneOk = !!(formData.phone && isValidUSPhoneNumber(formData.phone))
+    const emailOk = !!(formData.email && isValidEmail(formData.email))
+    const sourceOk = !!formData.sourceOfLead?.trim()
+    const termsOk = formData.termsAccepted === true
+    const marketingOk = formData.marketingConsent === true
+    return firstOk && lastOk && phoneOk && emailOk && sourceOk && termsOk && marketingOk
   }
 
   const nextStep = () => {
-    if (currentStep < 2) {
-      setCurrentStep(currentStep + 1)
+    if (currentStep < 4) {
+      setCurrentStep((s) => s + 1)
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep((s) => s - 1)
     }
   }
 
   const handleSubmit = async () => {
-    setStep2Touched(true)
-    if (!isStep2Valid()) return
+    if (!isStep4Valid()) return
 
+    setSubmitError(null)
     setIsSubmitting(true)
 
     try {
       const payloadData = {
         company_uid: finalCompanyUid,
         timezone: timezone,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         phone: formData.phone,
         email: formData.email,
         serviceType: formData.serviceType,
@@ -149,16 +155,13 @@ export default function BookingWizard() {
         start_time: formData.start_time,
         end_time: formData.end_time,
         selectedUser: formData.selectedUser,
-        marketingConsent: formData.marketingConsent,
+        marketingConsent: formData.marketingConsent ?? false,
         custom_fields: {
-          PreferredInspection: formData.preferredInspectionTime,
-          "Preferred Inspection Time": formData.preferredTimeOptions,
-          "Insurance Claim or Retail?": formData.claimType,
-          "Have you already filed a claim?": formData.filedClaim,
-          "Insurance Company": formData.insuranceCompany,
-          "If Referral, Referred by Name": formData.referralName,
-          "How did you hear about us? - Source of Lead": formData.sourceOfLead,
-          "Additional Comments": formData.additionalComments,
+          "How did you hear about us?": formData.sourceOfLead || "",
+          "How steep is your roof?":
+            ROOF_PITCH_LABELS[formData.roofPitch] || formData.roofPitch || "",
+          "What type of roof would you like?":
+            ROOF_TYPE_LABELS[formData.roofType] || formData.roofType || "",
         },
       }
 
@@ -171,15 +174,19 @@ export default function BookingWizard() {
       })
 
       if (!response.ok) {
+        const message = `Request failed (${response.status}). Please try again.`
         console.error("Failed to submit booking:", response.status, response.statusText)
-      } else {
-        console.log("Booking submitted successfully")
+        setSubmitError(message)
+        return
       }
+
+      setIsBookingConfirmed(true)
+      console.log("Booking submitted successfully")
     } catch (error) {
       console.error("Error submitting booking:", error)
+      setSubmitError("Something went wrong. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
-      setIsBookingConfirmed(true)
     }
   }
 
@@ -190,7 +197,7 @@ export default function BookingWizard() {
       onNext: nextStep,
       onPrev: prevStep,
       isValid: false,
-      isTouched: currentStep === 2 ? step2Touched : false,
+      isTouched: false,
     }
 
     switch (currentStep) {
@@ -198,26 +205,33 @@ export default function BookingWizard() {
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+      case 3:
+        return <StepThree {...stepProps} isValid={isStep3Valid()} />
+      case 4:
+        return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
   }
 
+  const continueDisabled =
+    (currentStep === 1 && !isStep1Valid()) ||
+    (currentStep === 2 && !isStep2Valid()) ||
+    (currentStep === 3 && !isStep3Valid())
+
   return (
     <div className="max-w-4xl mx-auto bg-white min-h-screen">
       {!isBookingConfirmed ? (
         <>
-          {/* Header */}
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 2</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
             </div>
 
-            {/* Progress Bar */}
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2].map((step) => (
+                {[1, 2, 3, 4].map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
@@ -226,7 +240,7 @@ export default function BookingWizard() {
                     >
                       {step}
                     </div>
-                    {step < 2 && (
+                    {step < 4 && (
                       <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
                     )}
                   </div>
@@ -235,13 +249,22 @@ export default function BookingWizard() {
             </div>
           </div>
 
-          {/* Step Content */}
-          <div className="px-6 py-8">{renderCurrentStep()}</div>
+          <div className="px-6 py-8">
+            {submitError && currentStep === 4 && (
+              <div
+                className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                role="alert"
+              >
+                {submitError}
+              </div>
+            )}
+            {renderCurrentStep()}
+          </div>
 
-          {/* Navigation Buttons */}
           <div className="border-t border-gray-200 px-6 py-4">
             <div className="flex justify-between">
               <button
+                type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center px-4 py-2 rounded-md transition-colors ${
@@ -252,16 +275,13 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 2 ? (
+              {currentStep < 4 ? (
                 <button
-                  onClick={() => {
-                    if (currentStep === 1) {
-                      nextStep()
-                    }
-                  }}
-                  disabled={currentStep === 1 && !isStep1Valid()}
+                  type="button"
+                  onClick={nextStep}
+                  disabled={continueDisabled}
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
-                    currentStep === 1 && !isStep1Valid()
+                    continueDisabled
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
@@ -271,15 +291,16 @@ export default function BookingWizard() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !isStep2Valid()}
+                  disabled={isSubmitting || !isStep4Valid()}
                   className={`px-6 py-2 rounded-md transition-colors ${
-                    isSubmitting || !isStep2Valid()
+                    isSubmitting || !isStep4Valid()
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
                 >
-                  {isSubmitting ? "Submitting..." : "Confirm Booking"}
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               )}
             </div>

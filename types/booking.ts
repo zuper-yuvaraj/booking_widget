@@ -6,6 +6,11 @@ export interface FormData {
   preferredInspectionTime: string
   preferredTimeOptions: string[]
   serviceType: string
+  /** Roof steepness: flat | low | moderate | steep */
+  roofPitch: string
+  /** Desired material: asphalt | metal | tile */
+  roofType: string
+  termsAccepted: boolean
   address: string
   street: string
   city: string
@@ -43,7 +48,7 @@ export interface ApiUser {
   last_name: string
   email: string
   designation: string
-  bio: string | ''
+  bio: string | ""
   profile_picture: string
   hourly_labor_charge: number | null
   is_active: boolean
@@ -68,9 +73,9 @@ export interface AvailabilityData {
 }
 
 export interface ApiResponse {
-  type: string,
-  message?: string,
-  success?: boolean,
+  type: string
+  message?: string
+  success?: boolean
   data: {
     availability: AvailabilityData[]
     users: ApiUser[]
@@ -88,10 +93,7 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: <K extends keyof FormData>(
-    field: K,
-    value: FormData[K]
-  ) => void
+  onUpdateFormData: <K extends keyof FormData>(field: K, value: FormData[K]) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean

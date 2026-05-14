@@ -19,10 +19,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           Thanks for booking with {COMPANY_NAME}!
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          Your booking is scheduled at{" "}
-          <span className="font-semibold text-green-600">
-            {formData.preferredInspectionTime}
-          </span>
+          We&apos;ve received your request and will reach out shortly.
         </p>
       </div>
 
@@ -31,7 +28,9 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <div className="space-y-3 text-left">
           <div className="flex justify-between">
             <span className="text-gray-600">Name:</span>
-            <span className="font-medium">{formData.firstName} {formData.lastName}</span>
+            <span className="font-medium">
+              {`${formData.firstName} ${formData.lastName}`.trim()}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Phone:</span>
@@ -46,7 +45,26 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="text-gray-600">Address:</span>
             <span className="font-medium">{formData.address}</span>
           </div>
-          
+
+          {formData.sourceOfLead ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-gray-600 shrink-0">How did you hear about us?</span>
+              <span className="font-medium text-right">{formData.sourceOfLead}</span>
+            </div>
+          ) : null}
+
+          {formData.roofPitch ? (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Roof pitch:</span>
+              <span className="font-medium capitalize">{formData.roofPitch}</span>
+            </div>
+          ) : null}
+          {formData.roofType ? (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Roof type:</span>
+              <span className="font-medium capitalize">{formData.roofType}</span>
+            </div>
+          ) : null}
         </div>
       </div>
 

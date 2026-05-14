@@ -208,10 +208,10 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <MapPin className="mx-auto w-12 h-12 mb-4 text-green-500" />
-        <h2 className="text-xl font-semibold text-gray-900">What's your address?</h2>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="mb-6">
+        <p className="text-sm text-gray-500 mb-2">Step 1 of 4</p>
+        <h2 className="text-3xl font-bold text-gray-900">What&apos;s your address?</h2>
         <p className="text-gray-600 mt-2">Search and select your location</p>
       </div>
 

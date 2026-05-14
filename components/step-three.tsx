@@ -1,116 +1,179 @@
 "use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
 import type { StepProps } from "@/types/booking"
 
-export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const serviceTypes = [
+const AsphaltIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 64 64" fill="none" className={className}>
+    <rect
+      x="10"
+      y="18"
+      width="44"
+      height="28"
+      rx="3"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+
+    <path
+      d="M10 26H54"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+
+    <path
+      d="M18 18V46"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeDasharray="2 2"
+    />
+
+    <path
+      d="M34 18V46"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeDasharray="2 2"
+    />
+  </svg>
+)
+
+const MetalIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 64 64" fill="none" className={className}>
+    <path
+      d="M14 14V50"
+      stroke="currentColor"
+      strokeWidth="3"
+    />
+    <path
+      d="M26 14V50"
+      stroke="currentColor"
+      strokeWidth="3"
+    />
+    <path
+      d="M38 14V50"
+      stroke="currentColor"
+      strokeWidth="3"
+    />
+    <path
+      d="M50 14V50"
+      stroke="currentColor"
+      strokeWidth="3"
+    />
+
+    <circle cx="20" cy="24" r="2" fill="currentColor" />
+    <circle cx="32" cy="34" r="2" fill="currentColor" />
+    <circle cx="44" cy="24" r="2" fill="currentColor" />
+  </svg>
+)
+
+const TileIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 64 64" fill="none" className={className}>
+    <path
+      d="M10 24C14 18 18 18 22 24C26 30 30 30 34 24C38 18 42 18 46 24C50 30 54 30 58 24"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+
+    <path
+      d="M10 34C14 28 18 28 22 34C26 40 30 40 34 34C38 28 42 28 46 34C50 40 54 40 58 34"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+
+    <path
+      d="M10 44C14 38 18 38 22 44C26 50 30 50 34 44C38 38 42 38 46 44C50 50 54 50 58 44"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
+export default function StepThree({
+  formData,
+  onUpdateFormData,
+}: StepProps) {
+  const roofTypes = [
     {
-      id: "inspection",
-      title: "Roof Inspection",
-      description: "Thorough assessment of your roof's condition",
-      icon: HomeIcon,
-      color: "green",
+      id: "asphalt",
+      title: "Asphalt",
+      icon: AsphaltIcon,
     },
     {
-      id: "repair",
-      title: "Repair Service",
-      description: "Professional Roof repair service",
-      icon: Wrench,
-      color: "green",
+      id: "metal",
+      title: "Metal",
+      icon: MetalIcon,
     },
-    
+    {
+      id: "tile",
+      title: "Tile",
+      icon: TileIcon,
+    },
   ]
 
-  const handleServiceSelect = (serviceType: string) => {
-    onUpdateFormData("serviceType", serviceType)
+  const handleSelect = (roofType: string) => {
+    onUpdateFormData("roofType", roofType)
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-12 h-12 mb-4 bg-green-100 rounded-full flex items-center justify-center">
-          <Wrench className="w-6 h-6 text-green-600" />
-        </div>
-        <h2 className="text-xl font-semibold text-gray-900">Choose type of service</h2>
-        <p className="text-gray-600 mt-2">Select the service you need</p>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-8">
+        <p className="text-sm text-gray-500 mb-2">
+          Step 3 of 4
+        </p>
+
+        <h2 className="text-3xl font-bold text-gray-900">
+          What type of roof would you like?
+        </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-
-        {serviceTypes.map((service) => {
-          const Icon = service.icon
-          const isSelected = formData.serviceType === service.id
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {roofTypes.map((roof) => {
+          const Icon = roof.icon
+          const isSelected = formData.roofType === roof.id
 
           return (
             <div
-              key={service.id}
-              onClick={() => handleServiceSelect(service.id)}
-              className={`relative cursor-pointer rounded-lg border-2 p-6 transition-all duration-200 hover:shadow-md ${
+              key={roof.id}
+              onClick={() => handleSelect(roof.id)}
+              className={`group relative overflow-hidden rounded-2xl border cursor-pointer transition-all duration-200 ${
                 isSelected
-                  ? service.color === "blue"
-                    ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-green-500 bg-green-50 shadow-md"
+                  ? "border-green-600 bg-green-50 shadow-md"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              {isSelected && (
+              <div className="p-8 flex flex-col items-center justify-center min-h-[220px]">
                 <div
-                  className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center ${
-                    service.color === "blue" ? "bg-blue-500" : "bg-green-500"
-                  }`}
-                >
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              )}
-
-              <div className="flex flex-col items-center text-center">
-                <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                    isSelected ? (service.color === "blue" ? "bg-blue-100" : "bg-green-100") : "bg-gray-100"
+                  className={`w-24 h-24 rounded-2xl flex items-center justify-center mb-6 transition-all ${
+                    isSelected
+                      ? "bg-green-100"
+                      : "bg-gray-100 group-hover:bg-gray-200"
                   }`}
                 >
                   <Icon
-                    className={`w-8 h-8 ${
-                      isSelected ? (service.color === "blue" ? "text-blue-600" : "text-green-600") : "text-gray-600"
+                    className={`w-16 h-16 ${
+                      isSelected
+                        ? "text-green-600"
+                        : "text-gray-600"
                     }`}
                   />
                 </div>
 
                 <h3
-                  className={`text-lg font-semibold mb-2 ${
-                    isSelected ? (service.color === "blue" ? "text-blue-900" : "text-green-900") : "text-gray-900"
+                  className={`text-xl font-semibold ${
+                    isSelected
+                      ? "text-green-900"
+                      : "text-gray-900"
                   }`}
                 >
-                  {service.title}
+                  {roof.title}
                 </h3>
-
-                <p
-                  className={`text-sm ${
-                    isSelected ? (service.color === "blue" ? "text-blue-700" : "text-green-700") : "text-gray-600"
-                  }`}
-                >
-                  {service.description}
-                </p>
               </div>
             </div>
           )
         })}
       </div>
-
-      {/* {formData.serviceType && (
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Selected Service:</strong> {serviceTypes.find((s) => s.id === formData.serviceType)?.title}
-          </p>
-        </div>
-      )} */}
     </div>
   )
 }
