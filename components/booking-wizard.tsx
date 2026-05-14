@@ -7,22 +7,46 @@ import { isValidEmail } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
-import StepThree from "./step-three"
-import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
-import { CREATE_BOOKING_WEBHOOK } from "@/configs"
-import {  useQueryParams } from "@/hooks/query-params.hooks"
+import { ASSISTED_SCHEDULING_WEBHOOK, COMPANY_UID, timezone } from "@/configs"
+
+// Fix 1: Moved parseInspectionTime out of the component so it's defined before use
+const parseInspectionTime = (timeRange: string) => {
+  if (!timeRange) return { start: "", end: "" }
+
+  const [start, end] = timeRange.split(" to ")
+
+  const formatTo24Hour = (time: string) => {
+    const [hourStr, modifier] = time.trim().split(" ")
+    let hour = parseInt(hourStr, 10)
+
+    if (modifier === "PM" && hour !== 12) hour += 12
+    if (modifier === "AM" && hour === 12) hour = 0
+
+    return `${hour.toString().padStart(2, "0")}:00:00`
+  }
+
+  return {
+    start: formatTo24Hour(start),
+    end: formatTo24Hour(end),
+  }
+}
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step2Touched, setStep2Touched] = useState(false)
+
+  // Fix 2: formData defined before any usage; added missing preferredTimeOptions field
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    preferredInspectionTime: "",
+    preferredTimeOptions: [],        // Fix 3: was missing from initial state
+    serviceType: "lead_qualification",
     address: "",
     street: "",
     city: "",
@@ -35,13 +59,28 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    claimType: undefined,
+    filedClaim: undefined,
+    insuranceCompany: "",
+    referralName: "",
+    sourceOfLead: "",
+    additionalComments: "",
+    marketingConsent: false,
   })
 
-  const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || ""
+  const finalCompanyUid = COMPANY_UID
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean | string[]) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value }
+      // Whenever preferredInspectionTime changes, parse and sync start_time / end_time
+      if (field === "preferredInspectionTime" && typeof value === "string") {
+        const { start, end } = parseInspectionTime(value)
+        updated.start_time = start
+        updated.end_time = end
+      }
+      return updated
+    })
   }
 
   const isStep1Valid = () => {
@@ -49,23 +88,30 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
+    const hasRequiredFields = !!(
+      formData.firstName?.trim() &&
+      formData.lastName?.trim() &&
+      formData.phone &&
+      formData.email &&
+      formData.preferredInspectionTime &&
+      (formData.preferredTimeOptions || []).length > 0 &&  // Fix 4: validate checkbox selection
+      formData.claimType &&
+      formData.filedClaim &&
+      formData.insuranceCompany &&
+      formData.sourceOfLead && formData.marketingConsent !== undefined
+      // Fix 5: additionalComments removed — it's optional, not required
+    )
+
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
-  }
 
-  const isStep3Valid = () => {
-    return !!formData.serviceType
-  }
+    const isConsentGiven = formData.marketingConsent === true
 
-  const isStep4Valid = () => {
-    return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
+    return hasRequiredFields && isPhoneValid && isEmailValid && isConsentGiven
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -77,23 +123,60 @@ export default function BookingWizard() {
   }
 
   const handleSubmit = async () => {
+    setStep2Touched(true)
+    if (!isStep2Valid()) return
+
     setIsSubmitting(true)
+
     try {
-      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const payloadData = {
+        company_uid: finalCompanyUid,
+        timezone: timezone,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+        serviceType: formData.serviceType,
+        address: formData.address,
+        street: formData.street,
+        city: formData.city,
+        state: formData.state,
+        zipcode: formData.zipcode,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        selectedDate: formData.selectedDate,
+        selectedSlot: formData.selectedSlot,
+        start_time: formData.start_time,
+        end_time: formData.end_time,
+        selectedUser: formData.selectedUser,
+        marketingConsent: formData.marketingConsent,
+        custom_fields: {
+          PreferredInspection: formData.preferredInspectionTime,
+          "Preferred Inspection Time": formData.preferredTimeOptions,
+          "Insurance Claim or Retail?": formData.claimType,
+          "Have you already filed a claim?": formData.filedClaim,
+          "Insurance Company": formData.insuranceCompany,
+          "If Referral, Referred by Name": formData.referralName,
+          "How did you hear about us? - Source of Lead": formData.sourceOfLead,
+          "Additional Comments": formData.additionalComments,
         },
-        body: JSON.stringify(formData)
+      }
+
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?company_uid=${finalCompanyUid}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payloadData),
       })
-      
+
       if (!response.ok) {
-        console.error('Failed to submit booking:', response.status, response.statusText)
+        console.error("Failed to submit booking:", response.status, response.statusText)
       } else {
-        console.log('Booking submitted successfully')
+        console.log("Booking submitted successfully")
       }
     } catch (error) {
-      console.error('Error submitting booking:', error)
+      console.error("Error submitting booking:", error)
     } finally {
       setIsSubmitting(false)
       setIsBookingConfirmed(true)
@@ -107,6 +190,7 @@ export default function BookingWizard() {
       onNext: nextStep,
       onPrev: prevStep,
       isValid: false,
+      isTouched: currentStep === 2 ? step2Touched : false,
     }
 
     switch (currentStep) {
@@ -114,10 +198,6 @@ export default function BookingWizard() {
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
-      case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
-      case 4:
-        return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
@@ -131,13 +211,13 @@ export default function BookingWizard() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of 2</div>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
+                {[1, 2].map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
@@ -146,7 +226,7 @@ export default function BookingWizard() {
                     >
                       {step}
                     </div>
-                    {step < 4 && (
+                    {step < 2 && (
                       <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
                     )}
                   </div>
@@ -172,18 +252,16 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 2 ? (
                 <button
-                  onClick={nextStep}
-                  disabled={
-                    (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
-                  }
+                  onClick={() => {
+                    if (currentStep === 1) {
+                      nextStep()
+                    }
+                  }}
+                  disabled={currentStep === 1 && !isStep1Valid()}
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
-                    (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    currentStep === 1 && !isStep1Valid()
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
@@ -194,9 +272,9 @@ export default function BookingWizard() {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={!isStep4Valid() || isSubmitting}
+                  disabled={isSubmitting || !isStep2Valid()}
                   className={`px-6 py-2 rounded-md transition-colors ${
-                    !isStep4Valid() || isSubmitting
+                    isSubmitting || !isStep2Valid()
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}

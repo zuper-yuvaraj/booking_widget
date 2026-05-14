@@ -9,22 +9,6 @@ interface BookingConfirmationProps {
 }
 
 export default function BookingConfirmation({ formData }: BookingConfirmationProps) {
-  const formatDate = (dateString: string) => {
-    dateString = dateString + " 00:00:00"
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: 'America/New_York'
-    })
-  }
-
-  const formatTime = (timeSlot: string) => {
-    return timeSlot
-  }
-
   return (
     <div className="max-w-2xl mx-auto text-center py-12">
       <div className="mb-8">
@@ -35,9 +19,9 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           Thanks for booking with {COMPANY_NAME}!
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          Your booking is scheduled for{" "}
+          Your booking is scheduled at{" "}
           <span className="font-semibold text-green-600">
-            {formatDate(formData.selectedDate)} at {formatTime(formData.selectedSlot)}
+            {formData.preferredInspectionTime}
           </span>
         </p>
       </div>
@@ -57,14 +41,12 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="text-gray-600">Email:</span>
             <span className="font-medium">{formData.email}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Service:</span>
-            <span className="font-medium capitalize">{formData.serviceType}</span>
-          </div>
+          
           <div className="flex justify-between">
             <span className="text-gray-600">Address:</span>
             <span className="font-medium">{formData.address}</span>
           </div>
+          
         </div>
       </div>
 

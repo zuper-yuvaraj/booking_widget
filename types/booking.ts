@@ -3,6 +3,8 @@ export interface FormData {
   lastName: string
   phone: string
   email: string
+  preferredInspectionTime: string
+  preferredTimeOptions: string[]
   serviceType: string
   address: string
   street: string
@@ -17,6 +19,12 @@ export interface FormData {
   end_time: string
   selectedUser: string
   marketingConsent?: boolean
+  claimType?: "Insurance Claim" | "Retail" | "Possible Repair"
+  filedClaim?: "yes" | "no"
+  insuranceCompany?: string
+  referralName?: string
+  sourceOfLead?: string
+  additionalComments?: string
 }
 
 export interface UserSlot {
@@ -80,8 +88,12 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: <K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean
+  isTouched?: boolean
 }
