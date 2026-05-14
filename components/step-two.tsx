@@ -138,7 +138,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Service (For template, added here. If this is needed, add this field, otherwise remove this field)<span className="text-red-500">*</span>
+            Service <span className="text-red-500">*</span>
             {/* the options are added above in the variable SERVICE_OPTIONS */}
           
           </label>
