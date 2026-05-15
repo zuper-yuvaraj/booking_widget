@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY } from "@/configs"
+import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE} from "@/configs"
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, isTouched }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
@@ -262,7 +262,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
         {/* Neeeco Employee */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Are you a Neeeco employee? <span className="text-red-500">*</span>
+            Are you a employee? <span className="text-red-500">*</span>
           </label>
           <select
             value={formData.isNeeecoEmployee || ""}
@@ -297,13 +297,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
               <option>Dennis Coleman</option>
               <option>Jason Garrett</option>
               <option>Joseph Flaherty</option>
-              <option>Kavya Mohan</option>
-              <option>Keith Fahey</option>
-              <option>Michael Monahan</option>
-              <option>Rex Osayimwen</option>
-              <option>Scott Liftman</option>
-              <option>Tolani Oreoffe</option>
-              <option>Matthew Wholley</option>
+              
             </select>
             {showEmployeeDependentError && (
               <p className="mt-1 text-sm text-red-600">Please select an outreach team member.</p>
@@ -345,11 +339,26 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
               className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               required
             />
-            <label className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. 
-              View our{" "}
-              
-              <a href={PRIVACY_POLICY} target="_blank" className="text-green-600 underline">Privacy Policy</a>.
+            <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
+              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              <a 
+                href={PRIVACY_POLICY}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-800 underline"
+              >
+                Privacy Policy
+              </a>
+              {" "}and{" "}
+              <a 
+                href={TERMS_OF_SERVICE}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-800 underline"
+              >
+                Terms of Service
+              </a>
+              .
             </label>
           </div>
         </div>

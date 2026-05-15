@@ -1,7 +1,7 @@
-export const COMPANY_NAME = "Neeeco"
-//export const TERMS_OF_SERVICE = ''
-export const COMPANY_UUID = "a3a54d51-41fe-4fcc-8a2b-33b2e52bef05"
-export const PRIVACY_POLICY = 'https://neeeco.com/privacy-policy/'
-export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/67a11483-4b09-444e-ac31-a30d80d6d0bb"
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/e27e12bc-def0-4bae-ae86-ee7047d758b3"
-export const GET_SERVICES_WEBHOOK = "https://internalwf.zuper.co/webhook/ce0c6690-5bc1-4add-b629-44da6e0f807c"
+export const COMPANY_NAME = "Booking Widget"
+export const TERMS_OF_SERVICE = 'https://www.zuper.co/terms-conditions'
+export const COMPANY_UUID = "c6dcd594-a537-4fae-b7b2-fcf77c722c8c"
+export const PRIVACY_POLICY = 'https://www.zuper.co/privacy-policy'
+export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/fe0866c8-5354-4bf6-bd3d-1f2bec3b252e"
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/886c5937-fb87-448b-bdd7-a7620d85f2c9"
+export const GET_SERVICES_WEBHOOK = "https://internalwf.zuper.co/webhook/73e8213f-d048-4e15-9d9b-b72cb66ab4f4"

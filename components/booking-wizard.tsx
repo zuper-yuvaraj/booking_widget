@@ -22,7 +22,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "hea",
+    serviceType: "lead_qualification",
     address: "",
     street: "",
     city: "",
