@@ -5,6 +5,7 @@ export interface FormData {
   lastName: string
   phone: string
   email: string
+  company_uid: string
   serviceType: string
   address: string
   street: string

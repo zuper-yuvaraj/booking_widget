@@ -8,7 +8,7 @@ import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
 import BookingConfirmation from "./booking-confirmation"
-import { CREATE_BOOKING_WEBHOOK, COMPANY_ID } from "@/configs"
+import { CREATE_BOOKING_WEBHOOK, COMPANY_UID } from "@/configs"
 
 
 export default function BookingWizard() {
@@ -23,6 +23,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
+    company_uid: COMPANY_UID,
     serviceType: "lead_qualification",
     address: "",
     street: "",
@@ -42,7 +43,7 @@ export default function BookingWizard() {
   })
 
   
-  const COMPANY_UID = COMPANY_ID;
+  const COMPANY_ID = COMPANY_UID;
 
   const handleUpdateFormData = (
     field: keyof FormData,
@@ -96,7 +97,7 @@ export default function BookingWizard() {
 
     try {
       const response = await fetch(
-        `${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`,
+        `${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_ID}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -2,7 +2,7 @@
 
 import { PartyPopper } from "lucide-react"
 import type { FormData } from "@/types/booking"
-import { COMPANY_NAME, Timezone } from "@/configs"
+import { COMPANY_NAME, timezone } from "@/configs"
 
 interface BookingConfirmationProps {
   formData: FormData
@@ -26,7 +26,7 @@ export default function BookingConfirmation({
       year: "numeric",
       month: "long",
       day: "numeric",
-      timeZone: Timezone,
+      timeZone: timezone,
     })
   }
 
