@@ -6,6 +6,9 @@ export interface FormData {
   preferredInspectionTime: string
   preferredTimeOptions: string[]
   serviceType: string
+  /** Estimate service: roof_repair | roof_replacement | windows_doors | other */
+  estimateService: string
+  estimateServiceOther: string
   /** Roof steepness: flat | low | moderate | steep */
   roofPitch: string
   /** Desired material: asphalt | metal | tile */

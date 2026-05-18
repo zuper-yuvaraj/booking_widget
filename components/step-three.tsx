@@ -120,7 +120,7 @@ export default function StepThree({
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
         <p className="text-sm text-gray-500 mb-2">
-          Step 3 of 4
+          Step 4 of 5
         </p>
 
         <h2 className="text-3xl font-bold text-gray-900">

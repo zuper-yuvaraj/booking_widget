@@ -46,6 +46,23 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="font-medium">{formData.address}</span>
           </div>
 
+          {formData.estimateService ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-gray-600 shrink-0">Service:</span>
+              <span className="font-medium text-right">
+                {formData.estimateService === "other" && formData.estimateServiceOther?.trim()
+                  ? `Other: ${formData.estimateServiceOther.trim()}`
+                  : formData.estimateService === "roof_repair"
+                    ? "Roof Repair"
+                    : formData.estimateService === "roof_replacement"
+                      ? "Roof Replacement"
+                      : formData.estimateService === "windows_doors"
+                        ? "Windows/Doors"
+                        : formData.estimateService}
+              </span>
+            </div>
+          ) : null}
+
           {formData.sourceOfLead ? (
             <div className="flex justify-between gap-4">
               <span className="text-gray-600 shrink-0">How did you hear about us?</span>

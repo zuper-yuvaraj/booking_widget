@@ -85,7 +85,7 @@ export default function StepTwo({ formData, onUpdateFormData }: StepProps) {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="mb-8">
-        <p className="text-sm text-gray-500 mb-2">Step 2 of 4</p>
+        <p className="text-sm text-gray-500 mb-2">Step 3 of 5</p>
 
         <h2 className="text-3xl font-bold text-gray-900">
           How steep is your roof?

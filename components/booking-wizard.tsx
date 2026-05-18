@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { isValidEmail, isValidUSPhoneNumber } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
+import StepService from "./step-service"
 import StepTwo from "./step-two"
 import StepThree from "./step-three"
 import StepFour from "./step-four"
@@ -50,6 +51,21 @@ const ROOF_TYPE_LABELS: Record<string, string> = {
   tile: "Tile",
 }
 
+const ESTIMATE_SERVICE_LABELS: Record<string, string> = {
+  roof_repair: "Roof Repair",
+  roof_replacement: "Roof Replacement",
+  windows_doors: "Windows/Doors",
+  other: "Other",
+}
+
+const TOTAL_STEPS = 5
+
+function getServiceCustomFieldValue(formData: FormData): string {
+  return (
+    ESTIMATE_SERVICE_LABELS[formData.estimateService] || formData.estimateService || ""
+  )
+}
+
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
@@ -64,6 +80,8 @@ export default function BookingWizard() {
     preferredInspectionTime: "",
     preferredTimeOptions: [],
     serviceType: "lead_qualification",
+    estimateService: "",
+    estimateServiceOther: "",
     roofPitch: "",
     roofType: "",
     termsAccepted: false,
@@ -101,11 +119,19 @@ export default function BookingWizard() {
 
   const isStep1Valid = () => !!formData.address
 
-  const isStep2Valid = () => !!formData.roofPitch
+  const isStep2Valid = () => {
+    if (!formData.estimateService) return false
+    if (formData.estimateService === "other") {
+      return !!formData.estimateServiceOther?.trim()
+    }
+    return true
+  }
 
-  const isStep3Valid = () => !!formData.roofType
+  const isStep3Valid = () => !!formData.roofPitch
 
-  const isStep4Valid = () => {
+  const isStep4Valid = () => !!formData.roofType
+
+  const isStep5Valid = () => {
     const firstOk = !!formData.firstName?.trim()
     const lastOk = !!formData.lastName?.trim()
     const phoneOk = !!(formData.phone && isValidUSPhoneNumber(formData.phone))
@@ -117,7 +143,7 @@ export default function BookingWizard() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < TOTAL_STEPS) {
       setCurrentStep((s) => s + 1)
     }
   }
@@ -129,7 +155,7 @@ export default function BookingWizard() {
   }
 
   const handleSubmit = async () => {
-    if (!isStep4Valid()) return
+    if (!isStep5Valid()) return
 
     setSubmitError(null)
     setIsSubmitting(true)
@@ -157,6 +183,10 @@ export default function BookingWizard() {
         selectedUser: formData.selectedUser,
         marketingConsent: formData.marketingConsent ?? false,
         custom_fields: {
+          Service: getServiceCustomFieldValue(formData),
+          ...(formData.estimateService === "other" && {
+            "Other services": formData.estimateServiceOther?.trim() || "",
+          }),
           "How did you hear about us?": formData.sourceOfLead || "",
           "How steep is your roof?":
             ROOF_PITCH_LABELS[formData.roofPitch] || formData.roofPitch || "",
@@ -204,11 +234,13 @@ export default function BookingWizard() {
       case 1:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
-        return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+        return <StepService {...stepProps} isValid={isStep2Valid()} />
       case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
+        return <StepTwo {...stepProps} isValid={isStep3Valid()} />
       case 4:
-        return <StepFour {...stepProps} isValid={isStep4Valid()} />
+        return <StepThree {...stepProps} isValid={isStep4Valid()} />
+      case 5:
+        return <StepFour {...stepProps} isValid={isStep5Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
@@ -217,7 +249,8 @@ export default function BookingWizard() {
   const continueDisabled =
     (currentStep === 1 && !isStep1Valid()) ||
     (currentStep === 2 && !isStep2Valid()) ||
-    (currentStep === 3 && !isStep3Valid())
+    (currentStep === 3 && !isStep3Valid()) ||
+    (currentStep === 4 && !isStep4Valid())
 
   return (
     <div className="max-w-4xl mx-auto bg-white min-h-screen">
@@ -226,12 +259,12 @@ export default function BookingWizard() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of {TOTAL_STEPS}</div>
             </div>
 
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
+                {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
@@ -240,7 +273,7 @@ export default function BookingWizard() {
                     >
                       {step}
                     </div>
-                    {step < 4 && (
+                    {step < TOTAL_STEPS && (
                       <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
                     )}
                   </div>
@@ -250,7 +283,7 @@ export default function BookingWizard() {
           </div>
 
           <div className="px-6 py-8">
-            {submitError && currentStep === 4 && (
+            {submitError && currentStep === TOTAL_STEPS && (
               <div
                 className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
                 role="alert"
@@ -275,7 +308,7 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < TOTAL_STEPS ? (
                 <button
                   type="button"
                   onClick={nextStep}
@@ -293,9 +326,9 @@ export default function BookingWizard() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !isStep4Valid()}
+                  disabled={isSubmitting || !isStep5Valid()}
                   className={`px-6 py-2 rounded-md transition-colors ${
-                    isSubmitting || !isStep4Valid()
+                    isSubmitting || !isStep5Valid()
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
