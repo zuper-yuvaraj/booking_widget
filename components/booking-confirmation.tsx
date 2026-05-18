@@ -3,25 +3,14 @@
 import { PartyPopper } from "lucide-react"
 import type { FormData } from "@/types/booking"
 import { COMPANY_NAME } from "@/configs"
+import { formatDateMmDdYyyy, formatUsPhoneDisplay, normalizeUsPhoneDigits } from "@/lib/utils"
 
 interface BookingConfirmationProps {
   formData: FormData
 }
 
 export default function BookingConfirmation({ formData }: BookingConfirmationProps) {
-   const formatDate = (dateString: string) => {
-    // dateString = dateString + " 00:00:00"
-    // const date = new Date(dateString)
-
-    return dateString
-    // return date.toLocaleDateString("en-US", {
-    //   weekday: "long",
-    //   year: "numeric",
-    //   month: "long",
-    //   day: "numeric",
-    //   timeZone: TIME_ZONE
-    // })
-  }
+  const formatDate = (dateString: string) => formatDateMmDdYyyy(dateString)
 
   const formatTime = (timeSlot: string) => {
     return timeSlot
@@ -36,13 +25,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-4">
           Thanks for booking with {COMPANY_NAME}!
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Your booking is scheduled for{" "}
-          <span className="font-semibold text-green-600">
-            {formatDate(formData.preferredDate)}
-            {formData.preferredTimeSlot && <>, {formatTime(formData.preferredTimeSlot)}</>}
-          </span>
-        </p>
+        
       </div>
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
@@ -54,7 +37,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Phone:</span>
-            <span className="font-medium">{formData.phone}</span>
+            <span className="font-medium">{formatUsPhoneDisplay(normalizeUsPhoneDigits(formData.phone))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Email:</span>
@@ -74,6 +57,12 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
             <span className="text-gray-600">Address:</span>
             <span className="font-medium">{formData.address}</span>
           </div>
+          {formData.services && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Services:</span>
+              <span className="font-medium text-right">{formData.services}</span>
+            </div>
+          )}
         </div>
       </div>
 

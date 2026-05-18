@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { isValidPhoneNumber } from "react-phone-number-input"
-import { isValidEmail } from "@/lib/utils"
+import { formatDateMmDdYyyy, formatUsPhoneE164, isValidEmail, isValidUsPhone } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
@@ -17,12 +16,13 @@ export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step2Touched, setStep2Touched] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: "lead_qualification",
     address: "",
     street: "",
     city: "",
@@ -38,15 +38,20 @@ export default function BookingWizard() {
     preferredDate:"",
     preferredTimeSlot: "",
     marketingConsent: false,
-    custom_fields: {},
+    services: "",
     description: "",
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
 
-  const handleUpdateFormData = (field: keyof FormData, value: string | boolean | Record<string, string>) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
+    setFormData((prev) => {
+      if (prev[field] === value) {
+        return prev
+      }
+      return { ...prev, [field]: value }
+    })
   }
 
   const isStep1Valid = () => {
@@ -55,7 +60,7 @@ export default function BookingWizard() {
 
   const isStep2Valid = () => {
     const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
+    const isPhoneValid = formData.phone ? isValidUsPhone(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
 
@@ -84,6 +89,8 @@ export default function BookingWizard() {
 
   const buildBookingPayload = () => {
     // Parse preferredTimeSlot "8:00 AM - 10:00 AM" into start/end appended to preferredDate
+    const preferredDate = formatDateMmDdYyyy(formData.preferredDate)
+    const selectedDate = formatDateMmDdYyyy(formData.selectedDate)
     let selectedSlot = formData.selectedSlot
     let start_time = formData.start_time
     let end_time = formData.end_time
@@ -91,14 +98,14 @@ export default function BookingWizard() {
     if (formData.preferredTimeSlot) {
       const [startPart, endPart] = formData.preferredTimeSlot.split(" - ")
       selectedSlot = formData.preferredTimeSlot
-      start_time = `${formData.preferredDate} ${startPart.trim()}`
-      end_time = `${formData.preferredDate} ${endPart.trim()}`
+      start_time = `${preferredDate} ${startPart.trim()}`
+      end_time = `${preferredDate} ${endPart.trim()}`
     }
 
     return {
       firstName: formData.firstName,
       lastName: formData.lastName,
-      phone: formData.phone,
+      phone: isValidUsPhone(formData.phone) ? formatUsPhoneE164(formData.phone) : formData.phone,
       email: formData.email,
       serviceType: formData.serviceType,
       address: formData.address,
@@ -108,16 +115,23 @@ export default function BookingWizard() {
       zipcode: formData.zipcode,
       latitude: formData.latitude,
       longitude: formData.longitude,
-      selectedDate: formData.selectedDate,
+      selectedDate,
       selectedSlot,
       start_time,
       end_time,
       selectedUser: formData.selectedUser,
-      preferredDate: formData.preferredDate,
+      preferredDate,
+      preferredTimeSlot: formData.preferredTimeSlot,
       marketingConsent: formData.marketingConsent,
-      custom_fields: formData.custom_fields,
+      services: formData.services,
       description: formData.description,
     }
+  }
+
+  const handleStep2Submit = () => {
+    setStep2Touched(true)
+    if (!isStep2Valid()) return
+    handleSubmit()
   }
 
   const handleSubmit = async () => {
@@ -149,9 +163,10 @@ export default function BookingWizard() {
     const stepProps = {
       formData,
       onUpdateFormData: handleUpdateFormData,
-      onNext: currentStep === 2 ? handleSubmit : nextStep,
+      onNext: currentStep === 2 ? handleStep2Submit : nextStep,
       onPrev: prevStep,
       isValid: false,
+      isTouched: currentStep === 2 ? step2Touched : false,
     }
 
     switch (currentStep) {
@@ -219,10 +234,11 @@ export default function BookingWizard() {
 
               {currentStep === 2 ? (
                 <button
-                  onClick={handleSubmit}
-                  disabled={!isStep2Valid() || isSubmitting}
+                  type="button"
+                  onClick={handleStep2Submit}
+                  disabled={isSubmitting}
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
-                    !isStep2Valid() || isSubmitting
+                    isSubmitting
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
