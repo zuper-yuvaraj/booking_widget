@@ -206,9 +206,9 @@ const formatDateOnly = (date: Date) => {
         timeZone: TIME_ZONE
       })
 
-      const endTimeDate = parseUTCDateTime(slot.end_time)
-      endTimeDate.setTime(endTimeDate.getTime() + 60 * 60 * 1000)
-      const endTime = endTimeDate.toLocaleTimeString('en-US', {
+      // const endTimeDate = parseUTCDateTime(slot.end_time)
+      // endTimeDate.setTime(endTimeDate.getTime() + 60 * 60 * 1000)
+      const endTime = parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
