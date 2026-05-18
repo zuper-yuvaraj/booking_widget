@@ -26,7 +26,7 @@ export default function BookingConfirmation({
       year: "numeric",
       month: "long",
       day: "numeric",
-      timeZone: Timezone,
+      timeZone: "UTC",
     })
   }
 
@@ -53,7 +53,7 @@ export default function BookingConfirmation({
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
-            {formatDate(formData.preferredDate)}
+            {formatDate(formData.preferredDate)} 
             {formData.selectedSlot &&
               ` at ${formatTime(formData.selectedSlot)}`}
           </span>

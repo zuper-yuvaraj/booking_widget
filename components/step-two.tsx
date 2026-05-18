@@ -3,7 +3,8 @@
 import { User } from "lucide-react"
 import { useEffect, useRef } from "react"
 import PhoneInput from "react-phone-number-input/input"
-import { isValidPhoneNumber } from "react-phone-number-input"
+const isValidUSPhone = (phone: string) =>
+  /^\+1[2-9]\d{2}[2-9]\d{6}$/.test(phone)
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
 import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
@@ -25,7 +26,7 @@ export default function StepTwo({
   /* -------------------- VALIDATIONS -------------------- */
 
   const isPhoneValid = formData.phone
-    ? isValidPhoneNumber(formData.phone)
+    ? isValidUSPhone(formData.phone)
     : true
 
   const showPhoneError = formData.phone && !isPhoneValid
@@ -51,6 +52,7 @@ export default function StepTwo({
   }
 
   const handlePhoneChange = (value: string | undefined) => {
+    if (value && value.length > 12) return
     onUpdateFormData("phone", value || "")
   }
 
@@ -67,7 +69,8 @@ export default function StepTwo({
     if (!value) return
 
     // Store ISO string to avoid "Invalid Date"
-    const isoDate = new Date(value + "T00:00:00").toISOString()
+    // const isoDate = new Date(value + "T00:00:00").toISOString()
+    const isoDate = new Date(value ).toISOString()
 
     onUpdateFormData("preferredDate", isoDate)
   }
@@ -143,6 +146,7 @@ export default function StepTwo({
               value={formData.phone}
               onChange={handlePhoneChange}
               onKeyDown={handleKeyPress}
+              maxLength={14}
               placeholder="Enter your phone number"
               className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 ${
                 showPhoneError
