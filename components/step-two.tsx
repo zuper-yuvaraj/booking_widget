@@ -1,14 +1,31 @@
 "use client"
 
 import { User } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY } from "@/configs"
+import { COMPANY_NAME, PRIVACY_POLICY, GET_CF_WEBHOOK } from "@/configs"
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, isTouched }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
+  const [outreachTeamOptions, setOutreachTeamOptions] = useState<string[]>([])
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+
+  useEffect(() => {
+    setIsLoadingOptions(true)
+    fetch(GET_CF_WEBHOOK)
+      .then((res) => res.json())
+      .then((json: { type: string; data: { field_name: string; field_options: string[] }[] }) => {
+        const field = json.data?.find((f) => f.field_name === "Outreach team")
+        if (field?.field_options?.length) {
+          setOutreachTeamOptions(field.field_options)
+        }
+      })
+      .catch((err) => console.error("Failed to fetch CF webhook:", err))
+      .finally(() => setIsLoadingOptions(false))
+  }, [])
+
   const getUsPhoneDigits = (phone: string) => phone.replace(/\D/g, "").slice(0, 10)
   const isValidUsPhoneDigits = (digits: string) => {
     if (!/^[2-9]\d{9}$/.test(digits)) return false
@@ -287,23 +304,18 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, i
             <select
               value={formData.outreachTeamMember || ""}
               onChange={(e) => onUpdateFormData("outreachTeamMember", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 ${showEmployeeDependentError ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-green-500 focus:border-green-500"}`}
+              disabled={isLoadingOptions}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 ${showEmployeeDependentError ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-green-500 focus:border-green-500"} ${isLoadingOptions ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`}
             >
-              <option value="">Select team member</option>
-              <option>Chase Conti</option>
-              <option>Daniel Bergeron</option>
-              <option>Darron Randolph</option>
-              <option>David Lyford</option>
-              <option>Dennis Coleman</option>
-              <option>Jason Garrett</option>
-              <option>Joseph Flaherty</option>
-              <option>Kavya Mohan</option>
-              <option>Keith Fahey</option>
-              <option>Michael Monahan</option>
-              <option>Rex Osayimwen</option>
-              <option>Scott Liftman</option>
-              <option>Tolani Oreoffe</option>
-              <option>Matthew Wholley</option>
+              {isLoadingOptions
+                ? <option value="">Loading options...</option>
+                : <>
+                    <option value="">Select team member</option>
+                    {outreachTeamOptions.map((member) => (
+                      <option key={member} value={member}>{member}</option>
+                    ))}
+                  </>
+              }
             </select>
             {showEmployeeDependentError && (
               <p className="mt-1 text-sm text-red-600">Please select an outreach team member.</p>
