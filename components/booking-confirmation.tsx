@@ -66,14 +66,23 @@ export default function BookingConfirmation({
           Thank you for booking with {COMPANY_NAME}!
         </h1>
 
-        <p className="text-lg text-gray-600 mb-8">
+        {/* <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
             {getDateInTimezone()}
             {formData.selectedSlot &&
               ` at ${formatTime(formData.selectedSlot)}`}
           </span>
-        </p>
+        </p> */}
+
+{/* <p className="text-lg text-gray-600 mb-8">
+          Your booking is scheduled for{" "}
+          <span className="font-semibold text-green-600">
+            {getDateInTimezone()}
+            {formData.selectedSlot &&
+              ` at ${formatTime(formData.selectedSlot)}`}
+          </span>
+        </p> */}
       </div>
 
       {/* BOOKING DETAILS */}

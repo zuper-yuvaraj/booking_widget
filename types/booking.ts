@@ -6,6 +6,9 @@ export interface FormData {
   phone: string
   email: string
   reasonForContact?: string
+  serviceInterestedIn?: string
+  heardAboutUs?: string
+  questionsOrComments?: string
   serviceType: string
   address: string
   street: string
@@ -87,4 +90,5 @@ export interface StepProps {
   onNext: () => void
   onPrev: () => void
   isValid: boolean
+  isSubmitting?: boolean
 }
