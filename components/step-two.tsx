@@ -37,7 +37,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
   return (
     <div className="max-w-md mx-auto space-y-6">
       <div className="text-center mb-8">
-        <User className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <User className="mx-auto w-12 h-12 mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
         <p className="text-gray-600 mt-2">Please provide your contact details</p>
       </div>
@@ -54,7 +54,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               value={formData.firstName}
               onChange={(e) => onUpdateFormData("firstName", e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-primary/35 rounded-md shadow-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/25"
               placeholder="Enter your first name"
             />
           </div>
@@ -66,7 +66,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               value={formData.lastName}
               onChange={(e) => onUpdateFormData("lastName", e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-primary/35 rounded-md shadow-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/25"
               placeholder="Enter your last name"
             />
           </div>
@@ -86,10 +86,10 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               onChange={handlePhoneChange}
               onKeyPress={handleKeyPress}
               placeholder="Enter your phone number"
-              className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 ${
+              className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:border-primary ${
                 showPhoneError 
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                  : "border-primary/35 focus:ring-primary/25 focus:border-primary"
               }`}
             />
             
@@ -110,10 +110,10 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
             value={formData.email}
             onChange={(e) => onUpdateFormData("email", e.target.value)}
             onKeyPress={handleKeyPress}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 ${
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:border-primary ${
               showEmailError 
                 ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                : "border-primary/35 focus:ring-primary/25 focus:border-primary"
             }`}
             placeholder="Enter your email address"
           />
@@ -124,6 +124,19 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           )}
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Additional Comments
+          </label>
+          <textarea
+            value={formData.comments || ""}
+            onChange={(e) => onUpdateFormData("comments", e.target.value)}
+            className="w-full px-3 py-2 border border-primary/35 rounded-md shadow-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/25"
+            placeholder="Enter any additional comments or details"
+            rows={4}
+          />
+        </div>
+
         <div className="mt-6">
           <div className="flex items-start space-x-3">
             <input
@@ -131,7 +144,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               id="marketing-consent"
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
-              className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              className="mt-1 h-4 w-4 text-primary accent-primary focus:outline-none focus:ring-primary border-gray-300 rounded"
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
@@ -140,7 +153,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
                 href={TERMS_OF_SERVICE} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
+                className="text-primary hover:text-primary/80 underline"
               >
                 Terms of Service
               </a>{" "}
@@ -149,7 +162,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
                 href={PRIVACY_POLICY}
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
+                className="text-primary hover:text-primary/80 underline"
               >
                 Privacy Policy
               </a>

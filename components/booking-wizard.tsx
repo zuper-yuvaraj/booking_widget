@@ -7,7 +7,7 @@ import { isValidEmail } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
-import StepThree from "./step-three"
+//import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { CREATE_BOOKING_WEBHOOK, COMPANY_UUID } from "@/configs"
@@ -22,7 +22,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: "inspection",
     address: "",
     street: "",
     city: "",
@@ -38,15 +38,14 @@ export default function BookingWizard() {
     marketingConsent: false,
   })
 
-  const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
+  const COMPANY_UID =  COMPANY_UUID
 
   const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const isStep1Valid = () => {
-    return !!formData.address
+    return !!formData.address  && formData.isServiceAreaValid === true
   }
 
   const isStep2Valid = () => {
@@ -67,7 +66,7 @@ export default function BookingWizard() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -102,6 +101,31 @@ export default function BookingWizard() {
     }
   }
 
+  const handleStartNewBooking = () => {
+    setIsBookingConfirmed(false)
+    setCurrentStep(1)
+    setFormData({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      serviceType: "inspection",
+      address: "",
+      street: "",
+      city: "",
+      state: "",
+      zipcode: "",
+      latitude: "",
+      longitude: "",
+      selectedDate: "",
+      selectedSlot: "",
+      selectedUser: "",
+      start_time: "",
+      end_time: "",
+      marketingConsent: false,
+    })
+  }
+
   const renderCurrentStep = () => {
     const stepProps = {
       formData,
@@ -117,8 +141,6 @@ export default function BookingWizard() {
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
       case 3:
-        return <StepThree {...stepProps} isValid={isStep3Valid()} />
-      case 4:
         return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
@@ -133,23 +155,23 @@ export default function BookingWizard() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of 3</div>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
+                {[1, 2, 3].map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+                        step <= currentStep ? "bg-primary text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {step}
                     </div>
-                    {step < 4 && (
-                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
+                    {step < 3 && (
+                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-primary" : "bg-gray-200"}`} />
                     )}
                   </div>
                 ))}
@@ -174,18 +196,16 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <button
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"
                   }`}
@@ -210,7 +230,7 @@ export default function BookingWizard() {
           </div>
         </>
       ) : (
-        <BookingConfirmation formData={formData} />
+        <BookingConfirmation formData={formData} onStartNewBooking={handleStartNewBooking} />
       )}
     </div>
   )

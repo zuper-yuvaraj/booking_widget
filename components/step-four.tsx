@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar, Clock, User } from "lucide-react"
+import { Calendar, Clock, User, ChevronLeft, ChevronRight } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
 import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
@@ -14,28 +14,22 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
+  const [calendarScrollIndex, setCalendarScrollIndex] = useState(0)
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") ||COMPANY_UUID
   console.log("Company UID from URL:", COMPANY_UID)
 
   const generateCalendarDates = () => {
-    const dates = []
-    const today = new Date()
-    let i = 0
-    while (dates.length < 7) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      // Skip Sundays (day 0)
-      // if (date.getDay() !== 0) {
-      //   dates.push(date)
-      // }
-        dates.push(date)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-      i++
-    }
-    return dates
-  }
+  return Array.from({ length: 14 }, (_, i) => {
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    return date
+  })
+}
 
   const calendarDates = generateCalendarDates()
 
@@ -43,7 +37,16 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
+      const params = new URLSearchParams({
+      date,
+      serviceType: formData.serviceType,
+      company_uid: COMPANY_UUID,
+      latitude: formData.latitude || "",
+      longitude: formData.longitude || "",
+      zipcode: formData.zipcode || "",
+      address: formData.address || "",
+    })
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?${params.toString()}`)
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
@@ -219,31 +222,57 @@ const formatDateOnly = (date: Date) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center mb-8">
-        <Calendar className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <Calendar className="mx-auto w-12 h-12 mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
         <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
       </div>
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                }`}
-              >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{formatDateOnly(date)}</div>
-              </button>
-            )
-          })}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setCalendarScrollIndex(Math.max(0, calendarScrollIndex - 1))}
+            disabled={calendarScrollIndex === 0}
+            className={`p-2 rounded-lg transition-colors ${
+              calendarScrollIndex === 0
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <div className="flex-1 grid grid-cols-5 gap-2">
+            {calendarDates.slice(calendarScrollIndex, calendarScrollIndex + 5).map((date, index) => {
+              const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+              return (
+                <button
+                  key={calendarScrollIndex + index}
+                  onClick={() => handleDateSelect(date)}
+                  className={`p-3 text-center rounded-lg border transition-colors ${
+                    isSelected
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-primary/10 hover:border-primary/40"
+                  }`}
+                >
+                  <div className="text-xs font-medium">{formatDate(date)}</div>
+                  <div className="text-lg font-bold">{formatDateOnly(date)}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          <button
+            onClick={() => setCalendarScrollIndex(Math.min(calendarDates.length - 5, calendarScrollIndex + 1))}
+            disabled={calendarScrollIndex >= calendarDates.length - 5}
+            className={`p-2 rounded-lg transition-colors ${
+              calendarScrollIndex >= calendarDates.length - 5
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -256,7 +285,7 @@ const formatDateOnly = (date: Date) => {
           
           {loading && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="text-gray-600 mt-2">Loading availability...</p>
             </div>
           )}
@@ -282,13 +311,13 @@ const formatDateOnly = (date: Date) => {
                     key={user.id}
                     className={`border rounded-lg p-4 transition-colors ${
                       isSelected
-                        ? "border-green-500 bg-green-50"
+                        ? "border-primary bg-primary/10"
                         : "border-gray-200 bg-white hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                           <img
                             src={user.avatar}
                             alt={user.name}
@@ -305,7 +334,7 @@ const formatDateOnly = (date: Date) => {
                                   e.stopPropagation()
                                   toggleBioExpansion(user.id)
                                 }}
-                                className="text-green-600 hover:text-green-700 text-xs font-medium mt-1"
+                                className="text-primary hover:text-primary/80 text-xs font-medium mt-1"
                               >
                                 {expandedBios.has(user.id) ? 'View less' : 'View more'}
                               </button>
@@ -332,8 +361,8 @@ const formatDateOnly = (date: Date) => {
                               }}
                               className={`p-2 text-center rounded-md border text-sm transition-colors ${
                                 isSlotSelected
-                                  ? "bg-primary text-white border-green-400"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                                  ? "bg-primary text-white border-primary"
+                                  : "bg-white text-gray-700 border-gray-300 hover:bg-primary/10 hover:border-primary/40"
                               }`}
                             >
                               {slot.display}
@@ -351,9 +380,9 @@ const formatDateOnly = (date: Date) => {
       )}
 
       {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-6">
+          <h4 className="text-lg font-medium text-primary mb-4">Booking Summary</h4>
+          <div className="space-y-2 text-sm text-primary">
             <p>
               <strong>Name:</strong> {formData.firstName} {formData.lastName}
             </p>

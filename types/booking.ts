@@ -3,6 +3,7 @@ export interface FormData {
   lastName: string
   phone: string
   email: string
+  comments?: string
   serviceType: string
   address: string
   street: string
@@ -17,6 +18,8 @@ export interface FormData {
   end_time: string
   selectedUser: string
   marketingConsent?: boolean
+  isServiceAreaValid?: boolean
+  serviceAreaMessage?: string
 }
 
 export interface UserSlot {
