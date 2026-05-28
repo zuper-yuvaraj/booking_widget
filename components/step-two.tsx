@@ -15,7 +15,6 @@ const labelClass = "block text-sm font-medium text-gray-700 mb-2"
 const SERVICE_OPTIONS = [
   "Commercial Roofing",
   "Residential Roofing",
-  "Roof Cleaning & Maintenance",
   "Roof Inspections",
   "Roof Insurance",
 ]
@@ -303,7 +302,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
         {/* Date */}
         <div>
           <label className={labelClass}>
-            Date <span className="text-red-500">*</span>
+            Preferred Date <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
