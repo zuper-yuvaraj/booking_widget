@@ -38,7 +38,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         </h1>
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
-          <span className="font-semibold ]">
+          <span className="font-semibold ">
             {formatDate(formData.preferredDate)}
             {formData.preferredTimeSlot && <>, {formatTime(formData.preferredTimeSlot)}</>}
           </span>
@@ -78,8 +78,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
       </div>
 
       <div className="text-gray-600">
-        <p className="mb-2">We'll send you a confirmation email and text message shortly.</p>
-        <p>Our team will contact you to confirm the appointment details.</p>
+        <p className="mb-2 text-lg font-bold">Thank you for your preferred schedule, our team will contact you to confirm the appointment date.</p>
       </div>
     </div>
   )
