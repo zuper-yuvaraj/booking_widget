@@ -13,11 +13,12 @@ const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
 const labelClass = "block text-sm font-medium text-gray-700 mb-2"
 
 const SERVICE_OPTIONS = [
-  "Emergency Roof Repair",
+  "Residential New Roof",
+  "Residential Re-Roof",
   "Roof Repair",
-  "Roof Replacement",
-  "Roof Maintenance",
-  "Roof Installation",
+  "Roof Rejuve",
+  "Gutter/Soffit/Fascia",
+  "Fortified Roof Systems",
 ]
 
 interface SlotOption {
@@ -303,7 +304,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
         {/* Date */}
         <div>
           <label className={labelClass}>
-            Date <span className="text-red-500">*</span>
+            Preferred Date <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
