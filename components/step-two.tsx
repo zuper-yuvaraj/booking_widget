@@ -6,7 +6,7 @@ import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE, ASSISTED_SCHEDULING_WEBHOOK, CREATE_BOOKING_WEBHOOK, COMPANY_UUID, TIME_ZONE } from "@/configs"
+import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE, CREATE_BOOKING_WEBHOOK, COMPANY_UUID, TIME_ZONE } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -21,22 +21,32 @@ const SERVICE_OPTIONS = [
   "Fortified Roof Systems",
 ]
 
-interface SlotOption {
-  display: string
-  start_time: string
-  end_time: string
+const FIXED_SLOTS = [
+  { display: "9AM - 12PM", startHour: 9, endHour: 12 },
+  { display: "12PM - 3PM", startHour: 12, endHour: 15 },
+  { display: "3PM - 6PM", startHour: 15, endHour: 18 },
+]
+
+function localHourToUTC(dateStr: string, hour: number, timezone: string): string {
+  const utcDate = new Date(`${dateStr}T${String(hour).padStart(2, "0")}:00:00Z`)
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "2-digit", hour12: false }).formatToParts(utcDate)
+  let localHour = parseInt(parts.find((p) => p.type === "hour")?.value || "0")
+  if (localHour === 24) localHour = 0
+  const offsetHours = hour - localHour
+  const adjusted = new Date(utcDate.getTime() + offsetHours * 60 * 60 * 1000)
+  const y = adjusted.getUTCFullYear()
+  const mo = String(adjusted.getUTCMonth() + 1).padStart(2, "0")
+  const d = String(adjusted.getUTCDate()).padStart(2, "0")
+  const h = String(adjusted.getUTCHours()).padStart(2, "0")
+  return `${y}-${mo}-${d} ${h}:00:00`
 }
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
   const cf = formData.custom_fields || {}
 
-  const [slots, setSlots] = useState<SlotOption[]>([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [slotError, setSlotError] = useState<string | null>(null)
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedSlotRaw, setSelectedSlotRaw] = useState<{ start_time: string; end_time: string } | null>(null)
   const serviceDropdownRef = useRef<HTMLDivElement>(null)
 
   const searchParams = useQueryParams()
@@ -100,8 +110,14 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
         longitude: formData.longitude,
         selectedDate: formData.selectedDate,
         selectedSlot: formData.selectedSlot,
-        start_time: selectedSlotRaw ? `${formData.preferredDate} ${selectedSlotRaw.start_time.split(" ")[1]}` : "",
-        end_time: selectedSlotRaw ? `${formData.preferredDate} ${selectedSlotRaw.end_time.split(" ")[1]}` : "",
+        start_time: (() => {
+          const slot = FIXED_SLOTS.find((s) => s.display === formData.preferredTimeSlot)
+          return slot && formData.preferredDate ? localHourToUTC(formData.preferredDate, slot.startHour, TIME_ZONE) : ""
+        })(),
+        end_time: (() => {
+          const slot = FIXED_SLOTS.find((s) => s.display === formData.preferredTimeSlot)
+          return slot && formData.preferredDate ? localHourToUTC(formData.preferredDate, slot.endHour, TIME_ZONE) : ""
+        })(),
         selectedUser: formData.selectedUser,
         preferredDate: formData.preferredDate,
         preferredTimeSlot: formData.preferredTimeSlot,
@@ -129,72 +145,10 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
 
   const today = new Date().toISOString().split("T")[0]
 
-  const parseUTCDateTime = (dateTimeString: string) => {
-    return new Date(dateTimeString.replace(' ', 'T') + 'Z')
-  }
-
-  const fetchSlots = async (date: string) => {
-    setLoadingSlots(true)
-    setSlotError(null)
-    setSlots([])
-    onUpdateFormData("preferredTimeSlot", "")
-
-    try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&company_uid=${COMPANY_UID}`)
-      if (response.status !== 200) throw new Error('Failed to fetch slots')
-
-      const data = await response.json()
-
-      const dayData = data.data.availability.find((item: { date: string }) => item.date === date)
-      if (!dayData || dayData.holiday || dayData.slots.length === 0) {
-        setSlots([])
-        return
-      }
-
-      const currentTime = new Date()
-      const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000)
-      const isToday = date === today
-
-      const slotOptions: SlotOption[] = dayData.slots
-        .filter((slot: { start_time: string }) => {
-          if (!isToday) return true
-          const slotStart = parseUTCDateTime(slot.start_time)
-          return slotStart > oneHourFromNow
-        })
-        .map((slot: { start_time: string; end_time: string }) => ({
-          display: `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: TIME_ZONE,
-          })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: TIME_ZONE,
-          })}`,
-          start_time: slot.start_time,
-          end_time: slot.end_time,
-        }))
-
-      setSlots(slotOptions)
-    } catch (err) {
-      setSlotError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoadingSlots(false)
-    }
-  }
-
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = e.target.value
     onUpdateFormData("preferredDate", date)
-    setSelectedSlotRaw(null)
-    if (date) {
-      fetchSlots(date)
-    } else {
-      setSlots([])
-      onUpdateFormData("preferredTimeSlot", "")
-    }
+    onUpdateFormData("preferredTimeSlot", "")
   }
 
   const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : true
@@ -321,34 +275,16 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
             <label className={labelClass}>
               Preferred Time Slot <span className="text-red-500">*</span>
             </label>
-            {loadingSlots && (
-              <div className="flex items-center space-x-2 py-2 text-sm text-gray-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
-                <span>Loading available slots...</span>
-              </div>
-            )}
-            {slotError && (
-              <p className="text-sm text-red-600">{slotError}</p>
-            )}
-            {!loadingSlots && !slotError && slots.length === 0 && (
-              <p className="text-sm text-gray-500 py-2">No available slots for this date.</p>
-            )}
-            {!loadingSlots && !slotError && slots.length > 0 && (
-              <select
-                value={formData.preferredTimeSlot}
-                onChange={(e) => {
-                  const selected = slots.find((s) => s.display === e.target.value) || null
-                  setSelectedSlotRaw(selected ? { start_time: selected.start_time, end_time: selected.end_time } : null)
-                  onUpdateFormData("preferredTimeSlot", e.target.value)
-                }}
-                className={inputClass}
-              >
-                <option value="">Select a time slot...</option>
-                {slots.map((slot, index) => (
-                  <option key={index} value={slot.display}>{slot.display}</option>
-                ))}
-              </select>
-            )}
+            <select
+              value={formData.preferredTimeSlot}
+              onChange={(e) => onUpdateFormData("preferredTimeSlot", e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Select a time slot...</option>
+              {FIXED_SLOTS.map((slot, index) => (
+                <option key={index} value={slot.display}>{slot.display}</option>
+              ))}
+            </select>
           </div>
         )}
 
