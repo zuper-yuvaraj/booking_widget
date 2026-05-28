@@ -135,7 +135,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              I agree to be contacted by Honest Fix by phone call, text message, and email about my service request, including scheduling, technician arrival updates, exact quotes, and follow-up. Message frequency varies. Message and data rates may apply. Reply HELP for support. No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out of texts.View our{" "}
               <a 
                 href={TERMS_OF_SERVICE} 
                 target="_blank" 
