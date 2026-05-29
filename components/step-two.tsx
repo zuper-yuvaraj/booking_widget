@@ -56,25 +56,6 @@ export default function StepTwo({
     onUpdateFormData("phone", value || "")
   }
 
-  /* -------------------- DATE HANDLING (FIX) -------------------- */
-
-  const today = new Date().toISOString().split("T")[0]
-
-  // Convert stored ISO → input compatible yyyy-mm-dd
-  const dateInputValue = formData.preferredDate
-    ? formData.preferredDate.split("T")[0]
-    : ""
-
-  const handleDateChange = (value: string) => {
-    if (!value) return
-
-    // Store ISO string to avoid "Invalid Date"
-    // const isoDate = new Date(value + "T00:00:00").toISOString()
-    const isoDate = new Date(value ).toISOString()
-
-    onUpdateFormData("preferredDate", isoDate)
-  }
-
   /* -------------------- UI -------------------- */
 
   return (
@@ -191,22 +172,6 @@ export default function StepTwo({
           )}
         </div>
 
-        {/* ✅ PREFERRED DATE (FIXED) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Preferred Date
-          </label>
-
-          <input
-            type="date"
-            min={today}
-            value={dateInputValue}
-            onChange={(e) => handleDateChange(e.target.value)}
-            onKeyDown={handleKeyPress}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-          />
-        </div>
-        
         {/* JOB TYPE */}
         {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -61,9 +61,8 @@ export default function BookingWizard() {
         formData.firstName &&
         formData.lastName &&
         formData.phone &&
-        formData.email &&
-        //formData.jobType &&
-        formData.preferredDate
+        formData.email
+        //formData.jobType
       )
 
     const phoneValid = formData.phone
@@ -95,12 +94,17 @@ export default function BookingWizard() {
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        preferredDate: new Date().toISOString(),
+      }
+
       const response = await fetch(
         `${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         }
       )
 
