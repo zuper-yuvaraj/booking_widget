@@ -33,16 +33,12 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
           <PartyPopper className="w-10 h-10 text-green-600" />
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
           Thanks for booking with {COMPANY_NAME}!
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Your booking is scheduled for{" "}
-          <span className="font-semibold text-green-600">
-            {formatDate(formData.preferredDate)}
-            {formData.preferredTimeSlot && <>, {formatTime(formData.preferredTimeSlot)}</>}
-          </span>
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
+          Our team will contact you to confirm your preferred appointment date.
+        </h2>
       </div>
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
@@ -77,10 +73,10 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         </div>
       </div>
 
-      <div className="text-gray-600">
+      {/* <div className="text-gray-600">
         <p className="mb-2">We'll send you a confirmation email and text message shortly.</p>
         <p>Our team will contact you to confirm the appointment details.</p>
-      </div>
+      </div> */}
     </div>
   )
 } 
