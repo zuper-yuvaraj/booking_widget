@@ -1,4 +1,4 @@
-export const COMPANY_NAME = "SC Roofing LLC"
+export const COMPANY_NAME = "Restoration Roofing SC"
 export const TERMS_OF_SERVICE = ''
 export const PRIVACY_POLICY = ''
 export const ASSISTED_SCHEDULING_WEBHOOK = "https://internalwf.zuper.co/webhook/5b66f69b-5a40-4847-ab65-77eb5a6b9857"
