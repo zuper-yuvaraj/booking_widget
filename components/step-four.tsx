@@ -16,6 +16,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
   const [localNotes, setLocalNotes] = useState("")
   const baseNotesRef = useRef(formData.notes)
+  const bookingSummaryRef = useRef<HTMLDivElement>(null)
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const raw = e.target.value
@@ -123,17 +124,12 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     return cleanBio.length > 200 ? cleanBio.substring(0, 200) + '...' : cleanBio
   }
 
-  // Auto-scroll to bottom when slot is selected
   useEffect(() => {
     if (formData.selectedSlot) {
-      // Small delay to ensure the booking summary is rendered
       const timer = setTimeout(() => {
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth'
-        })
+        bookingSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 100)
-      
+
       return () => clearTimeout(timer)
     }
   }, [formData.selectedSlot])
@@ -379,7 +375,7 @@ const formatDateOnly = (date: Date) => {
 
       {formData.selectedSlot && selectedUser && (
         <>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div ref={bookingSummaryRef} className="bg-green-50 border border-green-200 rounded-lg p-6">
             <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
             <div className="space-y-2 text-sm text-green-800">
               <p>
