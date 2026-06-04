@@ -34,7 +34,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           <PartyPopper className="w-10 h-10 text-[#FDDA0D]" />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
-          Thanks for booking with {COMPANY_NAME}!
+          Thanks for choosing {COMPANY_NAME}!
         </h1>
         <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
           Our team will contact you to confirm your preferred appointment date.
