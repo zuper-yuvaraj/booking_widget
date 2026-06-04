@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
 import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
@@ -16,7 +16,6 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
   const [localNotes, setLocalNotes] = useState("")
   const baseNotesRef = useRef(formData.notes)
-  const bookingSummaryRef = useRef<HTMLDivElement>(null)
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const raw = e.target.value
@@ -124,15 +123,6 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     return cleanBio.length > 200 ? cleanBio.substring(0, 200) + '...' : cleanBio
   }
 
-  useEffect(() => {
-    if (formData.selectedSlot) {
-      const timer = setTimeout(() => {
-        bookingSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
-
-      return () => clearTimeout(timer)
-    }
-  }, [formData.selectedSlot])
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -375,7 +365,7 @@ const formatDateOnly = (date: Date) => {
 
       {formData.selectedSlot && selectedUser && (
         <>
-          <div ref={bookingSummaryRef} className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
             <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
             <div className="space-y-2 text-sm text-green-800">
               <p>
