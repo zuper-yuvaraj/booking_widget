@@ -30,19 +30,19 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
   return (
     <div className="max-w-2xl mx-auto text-center py-12">
       <div className="mb-8">
-        <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-          <PartyPopper className="w-10 h-10 text-green-600" />
+        <div className="mx-auto w-20 h-20 bg-[#FDDA0D]/20 rounded-full flex items-center justify-center mb-6">
+          <PartyPopper className="w-10 h-10 text-[#FDDA0D]" />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
-          Thanks for booking with {COMPANY_NAME}!
+          Thanks for choosing {COMPANY_NAME}!
         </h1>
         <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">
           Our team will contact you to confirm your preferred appointment date.
         </h2>
       </div>
 
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold text-green-900 mb-4">Booking Details</h2>
+      <div className="bg-[#FDDA0D]/10 border border-[#FDDA0D]/50 rounded-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Booking Details</h2>
         <div className="space-y-3 text-left">
           <div className="flex justify-between">
             <span className="text-gray-600">Name:</span>
@@ -74,8 +74,7 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
       </div>
 
       {/* <div className="text-gray-600">
-        <p className="mb-2">We'll send you a confirmation email and text message shortly.</p>
-        <p>Our team will contact you to confirm the appointment details.</p>
+        <p className="mb-2 text-lg font-bold">Thank you for your preferred schedule, our team will contact you to confirm the appointment date.</p>
       </div> */}
     </div>
   )
