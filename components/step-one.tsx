@@ -275,6 +275,16 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
           </p>
         </div>
       )}
+
+      <div className="w-full rounded-lg overflow-hidden shadow-lg aspect-video">
+        <iframe
+          src="https://www.youtube.com/embed/A_0aBRne_ec"
+          title="Company Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full h-full"
+        />
+      </div>
     </div>
   )
 }

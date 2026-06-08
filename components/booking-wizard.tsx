@@ -154,37 +154,22 @@ export default function BookingWizard() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white min-h-screen">
+    <>
+      {/* Full-width top bar with logo */}
+      <div className="w-full bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://s3.us-west-1.amazonaws.com/prod.us-west-1c.app.zuperpro/attachments/a0c513ac-7711-483e-b16a-b60deeeb83df/65199f54-d20d-4ba5-a50b-ba1057f34112.png"
+            alt="Roof Tec Logo"
+            className="h-12 w-auto object-contain"
+          />
+          <span className="text-xl font-bold text-gray-900">Roof Tec</span>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto bg-white min-h-screen">
       {!isBookingConfirmed ? (
         <>
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mt-4 hidden">
-              <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
-                  <div key={step} className="flex items-center">
-                    <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {step}
-                    </div>
-                    {step < 4 && (
-                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* Step Content */}
           <div className="px-6 py-8">{renderCurrentStep()}</div>
 
@@ -251,5 +236,6 @@ export default function BookingWizard() {
         <BookingConfirmation formData={formData} />
       )}
     </div>
+    </>
   )
 }
