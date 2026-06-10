@@ -35,12 +35,13 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+     // ...existing code...
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
