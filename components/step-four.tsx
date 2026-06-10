@@ -1,59 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Calendar, Clock, User } from "lucide-react"
-import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
+import { useState, useRef, useMemo } from "react"
+import { Calendar, ChevronLeft, ChevronRight, Clock } from "lucide-react"
+import type { StepProps, ApiResponse, TimeSlot } from "@/types/booking"
+import { ASSISTED_SCHEDULING_WEBHOOK, USER_DETAILS_WEBHOOK, ZUPER_API_KEY } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    formData.selectedDate ? new Date(formData.selectedDate) : null,
-  )
+  const [selectedDate, setSelectedDate]         = useState(formData.selectedDate ? new Date(formData.selectedDate) : null)
   const [availabilityData, setAvailabilityData] = useState<ApiResponse | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
-
-  const searchParams = useQueryParams();
+  const [loading, setLoading]                   = useState(false)
+  const [error, setError]                       = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const searchParams = useQueryParams()
   const COMPANY_UID = searchParams.get("company_uid") || ""
-  console.log("Company UID from URL:", COMPANY_UID)
 
-  const generateCalendarDates = () => {
-    const dates = []
-    const today = new Date()
-    let i = 0
-    while (dates.length < 7) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      // Skip Sundays (day 0)
-      if (date.getDay() !== 0) {
-        dates.push(date)
-      }
-      i++
+  const allDates = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const dates: Date[] = []
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today); d.setDate(today.getDate() + i)
+      if (d.getDay() !== 0) dates.push(d)
     }
     return dates
-  }
+  }, [])
 
-  const calendarDates = generateCalendarDates()
+  const scrollPrev = () => scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })
+  const scrollNext = () => scrollRef.current?.scrollBy({ left: 320,  behavior: "smooth" })
 
   const fetchAvailability = async (date: string) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data')
-      }
-      const data: ApiResponse = await response.json()
-      if(!data.success) {
-        throw new Error(data.message || 'Failed to fetch availability data')
-      }
+      const teamParam = formData.teamUids?.length
+        ? `&team_uid=${formData.teamUids.join(",")}`
+        : ""
 
+      const res = await fetch(
+        `${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}${teamParam}`
+      )
+      if (!res.ok) throw new Error("Failed to fetch availability")
+      const data: ApiResponse = await res.json()
+      if (!data.success) throw new Error(data.message)
       setAvailabilityData(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching availability:', err)
+      setError(err instanceof Error ? err.message : "Error occurred")
     } finally {
       setLoading(false)
     }
@@ -61,280 +63,241 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
-    const dateString = date.toISOString().split("T")[0]
-    onUpdateFormData("selectedDate", dateString)
-    // Clear previous selections when date changes
+    const ds = date.toISOString().split("T")[0]
+    onUpdateFormData("selectedDate", ds)
     onUpdateFormData("selectedUser", "")
-    onUpdateFormData("selectedSlot", "")
-    // Fetch availability data for the selected date
-    fetchAvailability(dateString)
+    onUpdateFormData("selectedSlot",  "")
+    fetchAvailability(ds)
   }
 
-  const handleUserSelect = (userId: string) => {
-    onUpdateFormData("selectedUser", userId)
-    onUpdateFormData("selectedSlot", "") // Clear slot selection when user changes
-  }
-
-  const handleSlotSelect = (slot: { display: string; original: TimeSlot }) => {
-    onUpdateFormData("selectedSlot", slot.display)
-    onUpdateFormData("start_time", slot.original.start_time)
-    onUpdateFormData("end_time", slot.original.end_time)
-  }
-
-  const toggleBioExpansion = (userId: string) => {
-    setExpandedBios(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(userId)) {
-        newSet.delete(userId)
-      } else {
-        newSet.add(userId)
-      }
-      return newSet
-    })
-  }
-
-  const truncateBio = (bio: string, userId: string) => {
-    if (!bio) return ""
-    
-    const isExpanded = expandedBios.has(userId)
-    
-    if (isExpanded) {
-      return bio
-    }
-    
-    // Show first 200 characters, removing line breaks
-    const cleanBio = bio.replace(/\n/g, ' ')
-    return cleanBio.length > 200 ? cleanBio.substring(0, 200) + '...' : cleanBio
-  }
-
-  // Auto-scroll to bottom when slot is selected
-  useEffect(() => {
-    if (formData.selectedSlot) {
-      // Small delay to ensure the booking summary is rendered
-      const timer = setTimeout(() => {
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth'
-        })
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [formData.selectedSlot])
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      timeZone: 'America/New_York'
-    })
-  }
-
-  // Helper function to transform API data to UserSlot format
-  const transformApiDataToUserSlots = (): UserSlot[] => {
-    if (!availabilityData?.data) return []
-    
-    const selectedDateData = availabilityData.data.availability.find(
-      (item) => item.date === formData.selectedDate
-    )
-    
-    if (!selectedDateData || selectedDateData.holiday || selectedDateData.slots.length === 0) {
-      return []
-    }
-
-    // Check if selected date is today
-    const today = new Date().toISOString().split('T')[0]
-    const isToday = formData.selectedDate === today
-    console.log("IS TODAY", isToday)
-    const currentTime = new Date()
-    const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000) // 1 hour from now
-
-    // Group slots by users with original slot data
-    const userSlotMap = new Map<string, { user: ApiUser; slots: Array<{ display: string; original: TimeSlot }> }>()
-
-    const parseUTCDateTime = (dateTimeString: string) => {
-      // Convert "2025-07-14 14:00:00" to "2025-07-14T14:00:00Z"
-      return new Date(dateTimeString.replace(' ', 'T') + 'Z');
-    };
-
-    selectedDateData.slots.forEach((slot: TimeSlot) => {
-      // Filter out slots that are less than 1 hour ahead if today
-      if (isToday) {
-        const slotStartTime = new Date(slot.start_time.replace(' ', 'T') + 'Z');
-        if (slotStartTime <= oneHourFromNow) {
-          return // Skip this slot
-        }
-      }
-      
-      
-
-      // Convert UTC to EST for UI display
-      const timeRange = `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      })}`
-      
-      slot.users.forEach((userId: string) => {
-        const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
-        if (user) {
-          if (!userSlotMap.has(userId)) {
-            userSlotMap.set(userId, { user, slots: [] })
-          }
-          userSlotMap.get(userId)!.slots.push({
-            display: timeRange,
-            original: slot
-          })
-        }
+  const handleSlotSelect = async (slot: TimeSlot) => {
+    const parseUTC = (d: string) => new Date(d.replace(" ", "T") + "Z")
+    const fmt = (d: string) =>
+      parseUTC(d).toLocaleTimeString("en-US", {
+        hour: "numeric", minute: "2-digit", hour12: true, timeZone: "America/New_York",
       })
-    })
+    const display = `${fmt(slot.start_time)} - ${fmt(slot.end_time)}`
 
-    return Array.from(userSlotMap.values()).map(({ user, slots }) => ({
-      id: user.user_uid,
-      name: `${user.first_name} ${user.last_name}`,
-      avatar: user.profile_picture,
-      description: `${user.bio || ''}`,
-      slots: slots
-    }))
+    onUpdateFormData("selectedSlot", display)
+    onUpdateFormData("start_time",   slot.start_time)
+    onUpdateFormData("end_time",     slot.end_time)
+
+    // Fetch all user details in parallel to find the closest one
+    const results = await Promise.allSettled(
+      slot.users.map((uid) =>
+        fetch(`${USER_DETAILS_WEBHOOK}/${uid}`, { headers: { "x-api-key": ZUPER_API_KEY } })
+          .then((r) => r.json())
+          .then((body): { uid: string; coords: [number, number] | null } => {
+            const coords = body?.data?.meta_data?.base_location_geo?.coordinates
+            // GeoJSON order: [longitude, latitude]
+            return { uid, coords: Array.isArray(coords) && coords.length === 2 ? coords : null }
+          })
+          .catch(() => ({ uid, coords: null }))
+      )
+    )
+
+    const customerLat = parseFloat(formData.latitude)
+    const customerLng = parseFloat(formData.longitude)
+
+    let pickedUid = ""
+    let minDist   = Infinity
+
+    for (const r of results) {
+      if (r.status !== "fulfilled") continue
+      const { uid, coords } = r.value
+      if (!coords) continue
+      const [lng, lat] = coords
+      const dist = haversineKm(customerLat, customerLng, lat, lng)
+      if (dist < minDist) { minDist = dist; pickedUid = uid }
+    }
+
+    // Fallback to random if no user had usable geo data
+    if (!pickedUid) {
+      pickedUid = slot.users[Math.floor(Math.random() * slot.users.length)] ?? ""
+    }
+
+    onUpdateFormData("selectedUser", pickedUid)
   }
 
-  const userSlots = transformApiDataToUserSlots()
-  const selectedUser = userSlots.find((user: UserSlot) => user.id === formData.selectedUser)
+  const getSlotsForDate = (): TimeSlot[] => {
+    if (!availabilityData?.data) return []
+    const dateData = availabilityData.data.availability.find(
+      (i) => i.date === formData.selectedDate
+    )
+    return dateData?.slots ?? []
+  }
+
+  const slots  = getSlotsForDate()
+  const today  = new Date(); today.setHours(0, 0, 0, 0)
+
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York",
+    })
+
+  const parseUTC = (d: string) => new Date(d.replace(" ", "T") + "Z")
+  const fmtTime  = (d: string) =>
+    parseUTC(d).toLocaleTimeString("en-US", {
+      hour: "numeric", minute: "2-digit", hour12: true, timeZone: "America/New_York",
+    })
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center mb-8">
-        <Calendar className="mx-auto w-12 h-12 mb-4 text-green-500" />
-        <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
-        <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-2">
+        <div
+          className="mx-auto w-14 h-14 mb-4 rounded-full flex items-center justify-center"
+          style={{ background: "var(--brand-forest-light)" }}
+        >
+          <Calendar className="w-6 h-6" style={{ color: "var(--brand-forest)" }} />
+        </div>
+        <h2 className="font-heading text-2xl font-semibold" style={{ color: "hsl(220,15%,14%)" }}>
+          Pick a Date &amp; Time
+        </h2>
+        <p className="text-sm mt-2" style={{ color: "hsl(220,10%,52%)" }}>
+          Let's find a time that works for you
+        </p>
       </div>
 
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                }`}
-              >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
-              </button>
-            )
-          })}
+      {/* ── Date Strip ───────────────────────────────── */}
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: "hsl(220,12%,28%)" }}>
+          <Calendar className="w-4 h-4" style={{ color: "var(--brand-forest)" }} />
+          Select a Date
+        </label>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={scrollPrev}
+            className="hidden sm:flex w-9 h-9 flex-shrink-0 items-center justify-center rounded-full border transition-all"
+            style={{ borderColor: "hsl(40,18%,86%)", background: "white", color: "hsl(220,10%,50%)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--brand-forest)"; e.currentTarget.style.color = "var(--brand-forest)" }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "hsl(40,18%,86%)"; e.currentTarget.style.color = "hsl(220,10%,50%)" }}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div
+            ref={scrollRef}
+            className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-1 flex-1 scrollbar-hide"
+          >
+            {allDates.map((date) => {
+              const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+              const isToday    = date.toDateString() === today.toDateString()
+
+              return (
+                <button
+                  key={date.toISOString()}
+                  onClick={() => handleDateSelect(date)}
+                  ref={(el) => isSelected && el?.scrollIntoView({ inline: "center", behavior: "smooth" })}
+                  className="min-w-[72px] flex-shrink-0 p-2.5 rounded-xl snap-start transition-all duration-200 flex flex-col items-center gap-0.5"
+                  style={isSelected ? {
+                    background: "var(--brand-forest)",
+                    border: "1.5px solid var(--brand-forest)",
+                    boxShadow: "0 4px 12px rgba(46,96,78,0.22)",
+                    color: "white",
+                  } : {
+                    background: "white",
+                    border: `1.5px solid ${isToday ? "hsl(158,28%,74%)" : "hsl(40,18%,88%)"}`,
+                    color: "hsl(220,12%,25%)",
+                  }}
+                  onMouseEnter={(e) => !isSelected && (e.currentTarget.style.borderColor = "var(--brand-forest-mid)")}
+                  onMouseLeave={(e) => !isSelected && (e.currentTarget.style.borderColor = isToday ? "hsl(158,28%,74%)" : "hsl(40,18%,88%)")}
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-wide" style={{ opacity: isSelected ? 0.75 : 0.6 }}>
+                    {date.toLocaleDateString("en-US", { weekday: "short" })}
+                  </span>
+                  <span className="text-xl font-bold leading-none">{date.getDate()}</span>
+                  <span className="text-[10px]" style={{ opacity: isSelected ? 0.7 : 0.55 }}>
+                    {date.toLocaleDateString("en-US", { month: "short" })}
+                  </span>
+                  {isToday && !isSelected && (
+                    <span
+                      className="w-1 h-1 rounded-full mt-0.5"
+                      style={{ background: "var(--brand-forest)" }}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          <button
+            onClick={scrollNext}
+            className="hidden sm:flex w-9 h-9 flex-shrink-0 items-center justify-center rounded-full border transition-all"
+            style={{ borderColor: "hsl(40,18%,86%)", background: "white", color: "hsl(220,10%,50%)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--brand-forest)"; e.currentTarget.style.color = "var(--brand-forest)" }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "hsl(40,18%,86%)"; e.currentTarget.style.color = "hsl(220,10%,50%)" }}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
+      {/* ── Time Slots ────────────────────────────────── */}
       {selectedDate && (
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            <User className="inline w-5 h-5 mr-2" />
-            Available Professionals for {formatDate(selectedDate)}
+        <div className="space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-semibold" style={{ color: "hsl(220,12%,28%)" }}>
+            <Clock className="w-4 h-4" style={{ color: "var(--brand-forest)" }} />
+            Available Times — {formatDate(selectedDate)}
           </h3>
-          
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading availability...</p>
-            </div>
-          )}
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">Error: {error}</p>
-            </div>
-          )}
-          
-          {!loading && !error && userSlots.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No professionals available for this date.</p>
-            </div>
-          )}
-          
-          {!loading && !error && userSlots.length > 0 && (
-            <div className="space-y-4">
-              {userSlots.map((user: UserSlot) => {
-                const isSelected = formData.selectedUser === user.id
-                return (
-                  <div
-                    key={user.id}
-                    className={`border rounded-lg p-4 transition-colors ${
-                      isSelected
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{user.name}</h4>
-                          <div className="text-sm text-gray-500">
-                            <p className="whitespace-pre-line">{truncateBio(user.description, user.id)}</p>
-                            {user.description && user.description.length > 200 && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleBioExpansion(user.id)
-                                }}
-                                className="text-green-600 hover:text-green-700 text-xs font-medium mt-1"
-                              >
-                                {expandedBios.has(user.id) ? 'View less' : 'View more'}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h5 className="text-sm font-medium text-gray-900 mb-3">
-                        <Clock className="inline w-4 h-4 mr-1" />
-                        Available Times
-                      </h5>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {user.slots.map((slot: { display: string; original: TimeSlot }, index: number) => {
-                          const isSlotSelected = formData.selectedSlot === slot.display && formData.selectedUser === user.id
-                          return (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                handleUserSelect(user.id)
-                                handleSlotSelect(slot)
-                              }}
-                              className={`p-2 text-center rounded-md border text-sm transition-colors ${
-                                isSlotSelected
-                                  ? "bg-primary text-white border-green-400"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                              }`}
-                            >
-                              {slot.display}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
+          {/* Skeleton */}
+          {loading && (
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton h-10 w-36 rounded-full" />
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div
+              className="px-4 py-3 rounded-xl text-sm font-medium"
+              style={{ background: "hsl(0,60%,97%)", border: "1.5px solid hsl(0,55%,85%)", color: "hsl(0,60%,45%)" }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && !error && slots.length === 0 && availabilityData && (
+            <div className="text-center py-10 rounded-xl" style={{ background: "white", border: "1.5px solid hsl(40,18%,90%)" }}>
+              <Calendar className="w-10 h-10 mx-auto mb-3" style={{ color: "hsl(220,8%,78%)" }} />
+              <p className="font-semibold text-sm" style={{ color: "hsl(220,12%,28%)" }}>No availability for this date</p>
+              <p className="text-xs mt-1" style={{ color: "hsl(220,8%,58%)" }}>Please select another day to continue.</p>
+            </div>
+          )}
+
+          {/* Slot pills */}
+          {!loading && slots.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {slots.map((slot, i) => {
+                const display    = `${fmtTime(slot.start_time)} - ${fmtTime(slot.end_time)}`
+                const isSelected = formData.selectedSlot === display
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleSlotSelect(slot)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
+                    style={isSelected ? {
+                      background: "var(--brand-terra)",
+                      color: "white",
+                      boxShadow: "0 3px 10px rgba(217,103,58,0.28)",
+                      transform: "scale(1.03)",
+                    } : {
+                      background: "white",
+                      border: "1.5px solid hsl(40,18%,86%)",
+                      color: "hsl(220,10%,38%)",
+                    }}
+                    onMouseEnter={(e) => !isSelected && Object.assign(e.currentTarget.style, { borderColor: "var(--brand-terra)", color: "var(--brand-terra)", background: "hsl(18,65%,96%)" })}
+                    onMouseLeave={(e) => !isSelected && Object.assign(e.currentTarget.style, { borderColor: "hsl(40,18%,86%)", color: "hsl(220,10%,38%)", background: "white" })}
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    {display}
+                  </button>
                 )
               })}
             </div>
@@ -342,34 +305,37 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
         </div>
       )}
 
-      {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
-            <p>
-              <strong>Name:</strong> {formData.firstName} {formData.lastName}
-            </p>
-            <p>
-              <strong>Phone:</strong> {formData.phone}
-            </p>
-            <p>
-              <strong>Email:</strong> {formData.email}
-            </p>
-            <p>
-              <strong>Address:</strong> {formData.address}
-            </p>
-            <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
-            </p>
-            <p>
-              <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
-            </p>
-            <p>
-              <strong>Professional:</strong> {selectedUser.name}
-            </p>
-            <p>
-              <strong>Time:</strong> {formData.selectedSlot}
-            </p>
+      {/* ── Booking summary ────────────────────────────── */}
+      {formData.selectedSlot && (
+        <div
+          className="rounded-xl p-5 space-y-3 animate-scale-in"
+          style={{
+            background: "var(--brand-forest-light)",
+            border: "1.5px solid hsl(158, 28%, 78%)",
+          }}
+        >
+          <p className="font-heading text-base font-semibold" style={{ color: "var(--brand-forest)" }}>
+            Booking Summary
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            {[
+              ["Name",    `${formData.firstName} ${formData.lastName}`],
+              ["Phone",   formData.phone],
+              ["Email",   formData.email],
+              ["Service", formData.serviceType],
+              ["Date",    formatDate(selectedDate!)],
+              ["Time",    formData.selectedSlot],
+            ].map(([label, value]) => (
+              <div key={label} className="contents">
+                <span style={{ color: "var(--brand-forest-mid)" }}>{label}</span>
+                <span
+                  className="font-medium capitalize"
+                  style={{ color: label === "Time" ? "var(--brand-terra)" : "var(--brand-forest)" }}
+                >
+                  {value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

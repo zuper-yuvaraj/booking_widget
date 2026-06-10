@@ -1,11 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── Brand Tokens ─────────────────────────────────────── */
 :root {
-  --font-sans: "Figtree", sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-heading: "Playfair Display", Georgia, serif;
+
+  --brand-forest:       hsl(158, 35%, 28%);
+  --brand-forest-hover: hsl(158, 35%, 22%);
+  --brand-forest-light: hsl(158, 35%, 94%);
+  --brand-forest-mid:   hsl(158, 30%, 42%);
+  --brand-forest-muted: hsl(158, 20%, 88%);
+
+  --brand-cream:        hsl(45, 30%, 97%);
+  --brand-cream-dark:   hsl(40, 22%, 91%);
+  --brand-cream-warm:   hsl(42, 25%, 94%);
+
+  --brand-terra:        hsl(18, 65%, 55%);
+  --brand-terra-dark:   hsl(18, 65%, 46%);
+  --brand-terra-light:  hsl(18, 65%, 96%);
+
+  --radius: 0.625rem;
+
+  --background: hsl(45, 30%, 97%);
+  --foreground: hsl(220, 15%, 14%);
+  --card:       hsl(0, 0%, 100%);
+  --card-foreground: hsl(220, 15%, 14%);
+  --popover:    hsl(0, 0%, 100%);
+  --popover-foreground: hsl(220, 15%, 14%);
+  --primary:    hsl(158, 35%, 28%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary:  hsl(45, 20%, 93%);
+  --secondary-foreground: hsl(220, 15%, 18%);
+  --muted:      hsl(45, 15%, 92%);
+  --muted-foreground: hsl(220, 10%, 50%);
+  --accent:     hsl(45, 20%, 93%);
+  --accent-foreground: hsl(220, 15%, 18%);
+  --destructive: hsl(0, 72%, 51%);
+  --border:     hsl(40, 20%, 88%);
+  --input:      hsl(40, 20%, 88%);
+  --ring:       hsl(158, 35%, 28%);
+  --chart-1: hsl(18, 65%, 55%);
+  --chart-2: hsl(158, 35%, 40%);
+  --chart-3: hsl(45, 30%, 70%);
+  --chart-4: hsl(18, 40%, 75%);
+  --chart-5: hsl(158, 20%, 60%);
+  --sidebar: hsl(45, 30%, 97%);
+  --sidebar-foreground: hsl(220, 15%, 14%);
+  --sidebar-primary: hsl(158, 35%, 28%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(45, 20%, 93%);
+  --sidebar-accent-foreground: hsl(220, 15%, 18%);
+  --sidebar-border: hsl(40, 20%, 88%);
+  --sidebar-ring: hsl(158, 35%, 28%);
 }
 
 @theme inline {
@@ -46,86 +97,147 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
+/* ─── Base ──────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-.bg-primary {
-  background-color: #32cd32;
+/* ─── Typography helpers ────────────────────────────────── */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+/* ─── CTA Buttons ───────────────────────────────────────── */
+.btn-terra {
+  background: linear-gradient(135deg, hsl(18, 65%, 58%), hsl(18, 65%, 46%));
+  color: white;
+  box-shadow: 0 2px 10px rgba(217, 103, 58, 0.28);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.btn-terra:hover:not(:disabled) {
+  background: linear-gradient(135deg, hsl(18, 65%, 52%), hsl(18, 65%, 40%));
+  box-shadow: 0 5px 20px rgba(217, 103, 58, 0.38);
+  transform: translateY(-1px);
+}
+.btn-terra:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(217, 103, 58, 0.22);
+}
+.btn-terra:disabled {
+  background: hsl(220, 10%, 85%);
+  color: hsl(220, 10%, 58%);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-ghost-forest {
+  border: 1.5px solid hsl(158, 30%, 70%);
+  color: var(--brand-forest);
+  background: transparent;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+.btn-ghost-forest:hover:not(:disabled) {
+  background: var(--brand-forest-light);
+  border-color: var(--brand-forest);
+}
+.btn-ghost-forest:disabled {
+  border-color: hsl(220, 10%, 86%);
+  color: hsl(220, 10%, 70%);
+  cursor: not-allowed;
+}
+
+/* ─── Skeleton shimmer ──────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(40, 20%, 90%) 25%,
+    hsl(40, 20%, 95%) 50%,
+    hsl(40, 20%, 90%) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 8px;
+}
+
+/* ─── Form inputs ────────────────────────────────────────── */
+.input-forest {
+  border: 1.5px solid hsl(40, 20%, 84%);
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: hsl(220, 15%, 14%);
+  background: white;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  outline: none;
+}
+.input-forest::placeholder {
+  color: hsl(220, 10%, 65%);
+}
+.input-forest:focus {
+  border-color: var(--brand-forest);
+  box-shadow: 0 0 0 3px hsl(158, 35%, 28%, 0.12);
+}
+.input-forest.error {
+  border-color: hsl(0, 65%, 55%);
+  box-shadow: 0 0 0 3px hsl(0, 65%, 55%, 0.10);
+}
+
+/* ─── Service / Date / Slot cards ───────────────────────── */
+.card-selectable {
+  border: 1.5px solid hsl(40, 18%, 88%);
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.card-selectable:hover {
+  border-color: hsl(158, 30%, 68%);
+  box-shadow: 0 4px 14px rgba(46, 96, 78, 0.10);
+  transform: translateY(-1px);
+}
+.card-selectable.selected {
+  border-color: var(--brand-forest);
+  background: var(--brand-forest-light);
+  box-shadow: 0 4px 16px rgba(46, 96, 78, 0.14);
+}
+
+/* ─── Scrollbar hide ─────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── Checkmark SVG animation ───────────────────────────── */
+.checkmark-path {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: checkmark-draw 0.45s ease-out 0.38s forwards;
+}
+
+/* ─── Particle dots for confirmation ─────────────────────── */
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: float-particle var(--duration) ease-out var(--delay) forwards;
 }
 
 @tailwind base;

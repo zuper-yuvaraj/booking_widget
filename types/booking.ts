@@ -17,6 +17,11 @@ export interface FormData {
   end_time: string
   selectedUser: string
   marketingConsent?: boolean
+  job_description?: string
+  comments?: string
+  hearAboutUs?: string
+  selectedServices?: string[]
+  teamUids?: string[]
 }
 
 export interface UserSlot {
@@ -78,9 +83,22 @@ export interface GoogleMapsPrediction {
   }
 }
 
+export interface UserDetailsResponse {
+  type: string
+  data: {
+    user_uid: string
+    meta_data?: {
+      base_location_geo?: {
+        type: string
+        coordinates: [number, number]   // [longitude, latitude]
+      }
+    }
+  }
+}
+
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: string | boolean | string[]) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean

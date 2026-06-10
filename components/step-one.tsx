@@ -1,280 +1,389 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MapPin } from "lucide-react"
+import { MapPin, Search, MapPinOff, Loader2, CheckCircle2 } from "lucide-react"
 import type { StepProps, GoogleMapsPrediction } from "@/types/booking"
 import { useGoogleMaps } from "@/hooks/use-google-maps"
+import { SERVICE_AREA_WEBHOOK } from "@/configs"
+import { useQueryParams } from "@/hooks/query-params.hooks"
 
-// Extend Window interface to include Google Maps
 declare global {
-  interface Window {
-    google: any
-  }
+  interface Window { google: any }
 }
 
+const GOOGLE_MAPS_API_KEY =
+  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+
 export default function StepOne({ formData, onUpdateFormData }: StepProps) {
-  const [searchValue, setSearchValue] = useState(formData.address || "")
-  const [predictions, setPredictions] = useState<GoogleMapsPrediction[]>([])
+  const [searchValue, setSearchValue]         = useState(formData.address || "")
+  const [predictions, setPredictions]         = useState<GoogleMapsPrediction[]>([])
   const [showPredictions, setShowPredictions] = useState(false)
-  const [map, setMap] = useState<any>(null)
-  const [marker, setMarker] = useState<any>(null)
-  const [autocompleteService, setAutocompleteService] = useState<any>(null)
-  const [placesService, setPlacesService] = useState<any>(null)
-  const mapRef = useRef<HTMLDivElement>(null)
+  const [map, setMap]                         = useState<any>(null)
+  const [marker, setMarker]                   = useState<any>(null)
+  const [autocompleteService, setAutocomplete] = useState<any>(null)
+  const [placesService, setPlacesService]     = useState<any>(null)
+
+  // Service-area check state
+  const [isCheckingArea, setIsCheckingArea]   = useState(false)
+  const [pendingAddress, setPendingAddress]   = useState("")   // address being verified
+  const [outOfArea, setOutOfArea]             = useState(false)
+  const [areaErrorMsg, setAreaErrorMsg]       = useState("")
+
+  const mapRef          = useRef<HTMLDivElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
 
-  const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyB_LDXpb58SXx4I4dp0UVhKb1mJGqkDn8w"
-  const { isLoaded, loadError } = useGoogleMaps({
-    apiKey: GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
-  })
+  const { isLoaded, loadError } = useGoogleMaps({ apiKey: GOOGLE_MAPS_API_KEY, libraries: ["places"] })
+  const searchParams = useQueryParams()
+  const COMPANY_UID  = searchParams.get("company_uid") || ""
 
-  // Auto-focus the address input when component mounts
-  useEffect(() => {
-    if (addressInputRef.current) {
-      addressInputRef.current.focus()
-    }
-  }, [])
+  useEffect(() => { addressInputRef.current?.focus() }, [])
 
-  // Initialize map when Google Maps is loaded
+  // Init Google Maps
   useEffect(() => {
     if (isLoaded && !map && mapRef.current && window.google) {
-      const mapOptions = {
-        zoom: 4,
-        center: { lat: 39.8283, lng: -98.5795 },
-        mapTypeId: "satellite",
-        tilt: 0,
-        heading: 0,
-        disableDefaultUI: true,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        gestureHandling: "cooperative"
-      }
-
-      const newMap = new window.google.maps.Map(mapRef.current, mapOptions)
+      const newMap = new window.google.maps.Map(mapRef.current, {
+        zoom: 4, center: { lat: 39.8283, lng: -98.5795 },
+        mapTypeId: "satellite", tilt: 0, heading: 0,
+        disableDefaultUI: true, zoomControl: true,
+        mapTypeControl: false, streetViewControl: false,
+        fullscreenControl: false, gestureHandling: "cooperative",
+      })
       setMap(newMap)
-
-      const autoCompleteService = new window.google.maps.places.AutocompleteService()
-      const placesServiceInstance = new window.google.maps.places.PlacesService(newMap)
-
-      setAutocompleteService(autoCompleteService)
-      setPlacesService(placesServiceInstance)
+      setAutocomplete(new window.google.maps.places.AutocompleteService())
+      setPlacesService(new window.google.maps.places.PlacesService(newMap))
     }
   }, [isLoaded, map])
 
-  // Restore map location when there's an existing address
+  // Restore map pin when coming back to step 1
   useEffect(() => {
     if (formData.address && map && placesService && !marker) {
       const geocoder = new (window as any).google.maps.Geocoder()
-      
       geocoder.geocode({ address: formData.address }, (results: any[], status: string) => {
-        if (status === (window as any).google.maps.GeocoderStatus.OK && results && results[0]) {
-          const location = results[0].geometry.location
-          
-          // Create marker for the existing address
-          const newMarker = new (window as any).google.maps.Marker({
-            position: location,
-            map: map,
-            title: formData.address,
-          })
-          setMarker(newMarker)
-
-          // Update coordinates if not already set
-          if (!formData.latitude || !formData.longitude) {
-            onUpdateFormData("latitude", location.lat().toString())
-            onUpdateFormData("longitude", location.lng().toString())
-          }
-
-          // Parse address components if not already set
-          if (!formData.street || !formData.city || !formData.state || !formData.zipcode) {
-            const addressComponents = parseAddressComponents(results[0])
-            onUpdateFormData("street", addressComponents.street)
-            onUpdateFormData("city", addressComponents.city)
-            onUpdateFormData("state", addressComponents.state)
-            onUpdateFormData("zipcode", addressComponents.zipcode)
-          }
-
-          // Center map on the location
-          map.setCenter(location)
-          map.setZoom(20)
+        if (status === (window as any).google.maps.GeocoderStatus.OK && results?.[0]) {
+          const loc = results[0].geometry.location
+          setMarker(new (window as any).google.maps.Marker({ position: loc, map, title: formData.address }))
+          map.setCenter(loc); map.setZoom(20)
         }
       })
     }
   }, [formData.address, map, placesService, marker, onUpdateFormData])
 
-  // Cleanup marker on unmount
-  useEffect(() => {
-    return () => {
-      if (marker) {
-        marker.setMap(null)
+  useEffect(() => () => { marker?.setMap(null) }, [marker])
+
+  /* â”€â”€ Autocomplete search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const handleAddressSearch = (val: string) => {
+    setSearchValue(val)
+    if (!val.trim() || !autocompleteService) {
+      setPredictions([]); setShowPredictions(false); return
+    }
+    autocompleteService.getPlacePredictions(
+      { input: val, types: ["address"], componentRestrictions: { country: "us" } },
+      (preds: any[], status: string) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && preds) {
+          setPredictions(preds.slice(0, 5)); setShowPredictions(true)
+        } else { setPredictions([]); setShowPredictions(false) }
       }
-    }
-  }, [marker])
-
-  const handleAddressSearch = (inputValue: string) => {
-    setSearchValue(inputValue)
-
-    if (!inputValue.trim() || !autocompleteService) {
-      setPredictions([])
-      setShowPredictions(false)
-      return
-    }
-
-    const request = {
-      input: inputValue,
-      types: ["address"],
-      componentRestrictions: { country: "us" },
-    }
-
-    autocompleteService.getPlacePredictions(request, (predictions: any[], status: string) => {
-      if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-        setPredictions(predictions.slice(0, 5))
-        setShowPredictions(true)
-      } else {
-        setPredictions([])
-        setShowPredictions(false)
-      }
-    })
+    )
   }
 
   const parseAddressComponents = (place: any) => {
-    let street = ""
-    let city = ""
-    let state = ""
-    let zipcode = ""
-
-    if (place.address_components) {
-      place.address_components.forEach((component: any) => {
-        const types = component.types
-
-        if (types.includes("street_number") || types.includes("route")) {
-          street += component.long_name + " "
-        }
-        if (types.includes("locality")) {
-          city = component.long_name
-        }
-        if (types.includes("administrative_area_level_1")) {
-          state = component.short_name
-        }
-        if (types.includes("postal_code")) {
-          zipcode = component.long_name
-        }
-      })
-    }
-
+    let street = "", city = "", state = "", zipcode = ""
+    place.address_components?.forEach((c: any) => {
+      const t = c.types
+      if (t.includes("street_number") || t.includes("route")) street += c.long_name + " "
+      if (t.includes("locality"))                    city    = c.long_name
+      if (t.includes("administrative_area_level_1")) state   = c.short_name
+      if (t.includes("postal_code"))                 zipcode = c.long_name
+    })
     return { street: street.trim(), city, state, zipcode }
   }
 
-  const handleAddressSelect = (prediction: GoogleMapsPrediction) => {
-    if (!placesService) return
+  /* â”€â”€ Service-area check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  // Returns true if serviceable (or on network error to avoid blocking user)
+  const checkServiceArea = async (
+    address: string,
+    latitude: string,
+    longitude: string,
+    zipcode: string,
+  ): Promise<boolean> => {
+    setIsCheckingArea(true)
+    try {
+      const res = await fetch(`${SERVICE_AREA_WEBHOOK}?company_uid=${COMPANY_UID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, latitude, longitude, zipcode, company_uid: COMPANY_UID }),
+      })
 
-    const request = {
-      placeId: prediction.place_id,
-      fields: ["geometry", "formatted_address", "address_components"],
-    }
+      const data = await res.json().catch(() => ({}))
 
-    placesService.getDetails(request, (place: any, status: string) => {
-      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-        if (marker) {
-          marker.setMap(null)
-        }
+      // Primary success signal from the API
+      const isSuccess = data?.type === "success" && !!data?.data?.matched_territory
 
-        const newMarker = new window.google.maps.Marker({
-          position: place.geometry.location,
-          map: map,
-          title: place.formatted_address,
-        })
-        setMarker(newMarker)
+      // Existing out-of-area fallbacks retained as safety net
+      const isOutOfArea =
+        !isSuccess && (
+          data?.success === false ||
+          data?.type === "out_of_area" ||
+          data?.serviceable === false ||
+          (typeof data?.message === "string" && /out.of.area|not.service|outside/i.test(data.message))
+        )
 
-        const addressComponents = parseAddressComponents(place)
-
-        setSearchValue(place.formatted_address)
-        onUpdateFormData("address", place.formatted_address)
-        onUpdateFormData("street", addressComponents.street)
-        onUpdateFormData("city", addressComponents.city)
-        onUpdateFormData("state", addressComponents.state)
-        onUpdateFormData("zipcode", addressComponents.zipcode)
-        onUpdateFormData("latitude", place.geometry.location.lat().toString())
-        onUpdateFormData("longitude", place.geometry.location.lng().toString())
- 
-        map.setCenter(place.geometry.location)
-        map.setZoom(20)
-
-        setShowPredictions(false)
+      if (isOutOfArea || !isSuccess) {
+        setAreaErrorMsg(data?.message || "")
+        setOutOfArea(true)
+        return false
       }
-    })
+
+      // Extract team UIDs from matched territory teams array
+      const teams: { team_uid: string }[] =
+        data.data.matched_territory.territory.teams ?? []
+      const teamUids = teams.map((t: { team_uid: string }) => t.team_uid).filter(Boolean)
+
+      // Commit to formData BEFORE returning true
+      onUpdateFormData("teamUids", teamUids)
+
+      return true
+    } catch {
+      // Network error â€” allow the flow to continue
+      return true
+    } finally {
+      setIsCheckingArea(false)
+    }
   }
 
+  /* â”€â”€ Address selection from dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const handleAddressSelect = (prediction: GoogleMapsPrediction) => {
+    if (!placesService) return
+    setShowPredictions(false)
+
+    placesService.getDetails(
+      { placeId: prediction.place_id, fields: ["geometry", "formatted_address", "address_components"] },
+      async (place: any, status: string) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK) return
+
+        // Update the map immediately for visual feedback
+        marker?.setMap(null)
+        const newMarker = new window.google.maps.Marker({
+          position: place.geometry.location, map, title: place.formatted_address,
+        })
+        setMarker(newMarker)
+        map.setCenter(place.geometry.location); map.setZoom(20)
+
+        // Parse all fields locally â€” don't commit to formData yet
+        const c   = parseAddressComponents(place)
+        const lat = place.geometry.location.lat().toString()
+        const lng = place.geometry.location.lng().toString()
+        const addr = place.formatted_address
+
+        setSearchValue(addr)
+        setPendingAddress(addr)   // show the "Checkingâ€¦" badge
+
+        // Run service-area check FIRST
+        const serviceable = await checkServiceArea(addr, lat, lng, c.zipcode)
+
+        if (serviceable) {
+          // Only now commit to formData â€” this enables the Continue button
+          onUpdateFormData("address",   addr)
+          onUpdateFormData("street",    c.street)
+          onUpdateFormData("city",      c.city)
+          onUpdateFormData("state",     c.state)
+          onUpdateFormData("zipcode",   c.zipcode)
+          onUpdateFormData("latitude",  lat)
+          onUpdateFormData("longitude", lng)
+        } else {
+          // Clear pending display
+          setPendingAddress("")
+        }
+      }
+    )
+  }
+
+  /* â”€â”€ Dismiss out-of-area modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const handleDismiss = () => {
+    setOutOfArea(false)
+    setAreaErrorMsg("")
+    setPendingAddress("")
+    setSearchValue("")
+    marker?.setMap(null); setMarker(null)
+    map?.setCenter({ lat: 39.8283, lng: -98.5795 }); map?.setZoom(4)
+    setTimeout(() => addressInputRef.current?.focus(), 50)
+  }
+
+  /* â”€â”€ Derived display state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const showChecking  = isCheckingArea && !!pendingAddress
+  const showConfirmed = !isCheckingArea && !!formData.address
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     RENDER
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <MapPin className="mx-auto w-12 h-12 mb-4 text-green-500" />
-        <h2 className="text-xl font-semibold text-gray-900">What's your address?</h2>
-        <p className="text-gray-600 mt-2">Search and select your location</p>
-      </div>
+    <>
+      {/* Out-of-area modal */}
+      {outOfArea && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(10, 20, 15, 0.60)", backdropFilter: "blur(6px)" }}
+        >
+          <div
+            className="max-w-sm w-full rounded-2xl p-7 text-center animate-scale-in"
+            style={{ background: "white", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}
+          >
+            <div
+              className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
+              style={{ background: "hsl(18, 65%, 96%)" }}
+            >
+              <MapPinOff className="w-8 h-8" style={{ color: "var(--brand-terra)" }} />
+            </div>
+            <h3 className="font-heading text-xl font-semibold mb-2" style={{ color: "hsl(220,15%,12%)" }}>
+              Outside Our Service Area
+            </h3>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "hsl(220,10%,50%)" }}>
+              {areaErrorMsg ||
+                "Unfortunately, we don't currently service this location. Please try a different address."}
+            </p>
+            <button onClick={handleDismiss} className="btn-terra w-full py-3 rounded-full text-sm">
+              Try a Different Address
+            </button>
+          </div>
+        </div>
+      )}
 
-      <div className="relative">
-        <input
-          ref={addressInputRef}
-          type="text"
-          value={searchValue}
-          onChange={(e) => handleAddressSearch(e.target.value)}
-          onFocus={() => searchValue && setShowPredictions(true)}
-          placeholder="Enter your street address"
-          className="w-full px-4 py-3 border-2 border-green-500 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg"
-          disabled={!isLoaded}
-        />
+      <div className="space-y-5">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div
+            className="mx-auto w-14 h-14 mb-4 rounded-full flex items-center justify-center"
+            style={{ background: "var(--brand-forest-light)" }}
+          >
+            <MapPin className="w-6 h-6" style={{ color: "var(--brand-forest)" }} />
+          </div>
+          <h2 className="font-heading text-2xl font-semibold" style={{ color: "hsl(220,15%,14%)" }}>
+            What's your service address?
+          </h2>
+          <p className="text-sm mt-2" style={{ color: "hsl(220,10%,52%)" }}>
+            We'll use this to find the right team for your area
+          </p>
+        </div>
 
-        {showPredictions && predictions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {predictions.map((prediction) => (
-              <div
-                key={prediction.place_id}
-                onClick={() => handleAddressSelect(prediction)}
-                className="px-4 py-3 cursor-pointer border-b last:border-b-0 border-gray-100 hover:bg-green-50 transition-colors"
-              >
-                <div className="flex items-start">
-                  <MapPin className="w-4 h-4 text-gray-400 mr-3 mt-1 flex-shrink-0" />
+        {/* Search input */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            {isCheckingArea ? (
+              <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--brand-forest)" }} />
+            ) : (
+              <Search className="w-4 h-4" style={{ color: "var(--brand-forest-mid)" }} />
+            )}
+          </div>
+          <input
+            ref={addressInputRef}
+            type="text"
+            value={searchValue}
+            onChange={(e) => handleAddressSearch(e.target.value)}
+            onFocus={() => searchValue && predictions.length > 0 && setShowPredictions(true)}
+            placeholder="Enter your street address"
+            disabled={!isLoaded || isCheckingArea}
+            className="input-forest text-base"
+            style={{ paddingLeft: "2.75rem" }}
+          />
+
+          {showPredictions && predictions.length > 0 && !isCheckingArea && (
+            <div
+              className="absolute z-20 w-full mt-2 rounded-xl overflow-hidden"
+              style={{
+                background: "white",
+                border: "1.5px solid hsl(40, 20%, 88%)",
+                boxShadow: "0 8px 24px rgba(46,96,78,0.12)",
+              }}
+            >
+              {predictions.map((p) => (
+                <div
+                  key={p.place_id}
+                  onClick={() => handleAddressSelect(p)}
+                  className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors"
+                  style={{ borderBottom: "1px solid hsl(40, 18%, 94%)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--brand-forest-light)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
+                >
+                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-forest-mid)" }} />
                   <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {prediction.structured_formatting.main_text}
-                    </div>
-                    <div className="text-xs text-gray-500">{prediction.structured_formatting.secondary_text}</div>
+                    <p className="text-sm font-medium" style={{ color: "hsl(220,15%,14%)" }}>
+                      {p.structured_formatting.main_text}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "hsl(220,10%,55%)" }}>
+                      {p.structured_formatting.secondary_text}
+                    </p>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Map */}
+        <div
+          className="h-80 w-full rounded-2xl overflow-hidden"
+          style={{ boxShadow: "0 2px 12px rgba(46,96,78,0.10)" }}
+        >
+          <div
+            ref={mapRef}
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: "var(--brand-cream-dark)" }}
+          >
+            {loadError ? (
+              <div className="text-center" style={{ color: "hsl(0,60%,52%)" }}>
+                <MapPin className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-sm font-medium">Error loading map</p>
               </div>
-            ))}
+            ) : !isLoaded ? (
+              <div className="text-center" style={{ color: "hsl(220,10%,60%)" }}>
+                <div className="w-8 h-8 mx-auto mb-2 rounded-full skeleton" />
+                <p className="text-sm">Loading mapâ€¦</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Status badge */}
+        {showChecking && (
+          <div
+            className="flex items-center gap-2.5 px-4 py-3 rounded-xl"
+            style={{
+              background: "hsl(45, 22%, 94%)",
+              border: "1.5px solid hsl(40, 20%, 85%)",
+            }}
+          >
+            <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" style={{ color: "var(--brand-forest)" }} />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--brand-forest)" }}>
+                Checking service areaâ€¦
+              </p>
+              <p className="text-xs truncate" style={{ color: "hsl(220,10%,52%)" }}>
+                {pendingAddress}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {showConfirmed && (
+          <div
+            className="flex items-start gap-2.5 px-4 py-3 rounded-xl animate-scale-in"
+            style={{
+              background: "var(--brand-forest-light)",
+              border: "1.5px solid hsl(158, 30%, 82%)",
+            }}
+          >
+            <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-forest)" }} />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--brand-forest)" }}>
+                Address confirmed â€” we service this area!
+              </p>
+              <p className="text-xs truncate" style={{ color: "var(--brand-forest-mid)" }}>
+                {formData.address}
+              </p>
+            </div>
           </div>
         )}
       </div>
-
-      <div className="h-96 w-full rounded-lg overflow-hidden shadow-lg">
-        <div ref={mapRef} className="w-full h-full bg-gray-200 flex items-center justify-center">
-          {loadError ? (
-            <div className="text-red-500 text-center">
-              <MapPin className="w-8 h-8 mx-auto mb-2" />
-              <p>Error loading map</p>
-              <p className="text-sm">{loadError}</p>
-            </div>
-          ) : !isLoaded ? (
-            <div className="text-gray-500 text-center">
-              <MapPin className="w-8 h-8 mx-auto mb-2" />
-              <p>Loading map...</p>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {formData.address && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-800">
-            <MapPin className="inline w-4 h-4 mr-1" />
-            Selected: {formData.address}
-          </p>
-        </div>
-      )}
-    </div>
+    </>
   )
 }

@@ -1,105 +1,131 @@
 "use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
+import { Home, CloudRain, Layers, HardHat, CloudLightning, FileText, Search, Check } from "lucide-react"
+import { useState } from "react"
 import type { StepProps } from "@/types/booking"
 
-export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const serviceTypes = [
-    {
-      id: "inspection",
-      title: "Roof Inspection",
-      description: "Thorough assessment of your roof's condition",
-      icon: HomeIcon,
-      color: "green",
-    },
-    {
-      id: "repair",
-      title: "Repair Service",
-      description: "Professional Roof repair service",
-      icon: Wrench,
-      color: "green",
-    },
-    {
-      id: "install_replace",
-      title: "Install/Replace",
-      description: "Expert installation or replacement of your roof",
-      icon: ShieldAlert,
-      color: "green"
-    },
-  ]
+const serviceTypes = [
+  {
+    uiId: "total_exterior_inspection",
+    title: "Total Exterior Inspection",
+    description: "Full assessment of all exterior components",
+    icon: Search,
+  },
+  {
+    uiId: "roof_inspection",
+    title: "Roof Inspection",
+    description: "Comprehensive roof condition evaluation",
+    icon: Home,
+  },
+  {
+    uiId: "gutter_inspection",
+    title: "Gutter Inspection",
+    description: "Gutter integrity & drainage assessment",
+    icon: CloudRain,
+  },
+  {
+    uiId: "siding_inspection",
+    title: "Siding Inspection",
+    description: "Siding condition & damage evaluation",
+    icon: Layers,
+  },
+  {
+    uiId: "storm_damage",
+    title: "Storm Damage",
+    description: "Post-storm damage inspection & documentation",
+    icon: CloudLightning,
+  },
+  {
+    uiId: "insurance_claim",
+    title: "Insurance Claim",
+    description: "Damage assessment to support your claim",
+    icon: FileText,
+  },
+]
 
-  const handleServiceSelect = (serviceType: string) => {
-    onUpdateFormData("serviceType", serviceType)
+export default function StepThree({ formData, onUpdateFormData }: StepProps) {
+  const [selectedUiIds, setSelectedUiIds] = useState<string[]>(formData.selectedServices || [])
+
+  const handleServiceToggle = (uiId: string) => {
+    const next = selectedUiIds.includes(uiId)
+      ? selectedUiIds.filter((id) => id !== uiId)
+      : [...selectedUiIds, uiId]
+    setSelectedUiIds(next)
+    onUpdateFormData("serviceType", next.length > 0 ? "inspection" : "")
+    onUpdateFormData("selectedServices", next)
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-12 h-12 mb-4 bg-green-100 rounded-full flex items-center justify-center">
-          <Wrench className="w-6 h-6 text-green-600" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div
+          className="mx-auto w-14 h-14 mb-4 rounded-full flex items-center justify-center"
+          style={{ background: "var(--brand-forest-light)" }}
+        >
+          <HardHat className="w-6 h-6" style={{ color: "var(--brand-forest)" }} />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Choose type of service</h2>
-        <p className="text-gray-600 mt-2">Select the service you need</p>
+        <h2 className="font-heading text-2xl font-semibold" style={{ color: "hsl(220,15%,14%)" }}>
+          Select Your Service
+        </h2>
+        <p className="text-sm mt-2" style={{ color: "hsl(220,10%,52%)" }}>
+          Select all that apply — we'll cover everything in one visit
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Service grid */}
+      <div className="grid grid-cols-2 gap-3">
         {serviceTypes.map((service) => {
-          const Icon = service.icon
-          const isSelected = formData.serviceType === service.id
+          const Icon       = service.icon
+          const isSelected = selectedUiIds.includes(service.uiId)
 
           return (
             <div
-              key={service.id}
-              onClick={() => handleServiceSelect(service.id)}
-              className={`relative cursor-pointer rounded-lg border-2 p-6 transition-all duration-200 hover:shadow-md ${
-                isSelected
-                  ? service.color === "blue"
-                    ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-green-500 bg-green-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
+              key={service.uiId}
+              onClick={() => handleServiceToggle(service.uiId)}
+              className="relative card-selectable p-4 flex flex-col items-center text-center gap-3 select-none"
+              style={isSelected ? {
+                borderColor: "var(--brand-forest)",
+                background: "var(--brand-forest-light)",
+                boxShadow: "0 4px 16px rgba(46,96,78,0.12)",
+              } : {}}
             >
+              {/* Checkmark badge */}
               {isSelected && (
                 <div
-                  className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center ${
-                    service.color === "blue" ? "bg-blue-500" : "bg-green-500"
-                  }`}
+                  className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center animate-scale-in"
+                  style={{ background: "var(--brand-forest)" }}
                 >
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <Check className="w-3 h-3 text-white" />
                 </div>
               )}
 
-              <div className="flex flex-col items-center text-center">
-                <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                    isSelected ? (service.color === "blue" ? "bg-blue-100" : "bg-green-100") : "bg-gray-100"
-                  }`}
-                >
-                  <Icon
-                    className={`w-8 h-8 ${
-                      isSelected ? (service.color === "blue" ? "text-blue-600" : "text-green-600") : "text-gray-600"
-                    }`}
-                  />
-                </div>
+              {/* Icon */}
+              <div
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200"
+                style={isSelected ? {
+                  background: "var(--brand-forest)",
+                } : {
+                  background: "hsl(40,18%,92%)",
+                }}
+              >
+                <Icon
+                  className="w-5 h-5 transition-colors duration-200"
+                  style={{ color: isSelected ? "white" : "hsl(220,10%,50%)" }}
+                />
+              </div>
 
+              {/* Text */}
+              <div>
                 <h3
-                  className={`text-lg font-semibold mb-2 ${
-                    isSelected ? (service.color === "blue" ? "text-blue-900" : "text-green-900") : "text-gray-900"
-                  }`}
+                  className="text-sm font-semibold leading-snug"
+                  style={{ color: isSelected ? "var(--brand-forest)" : "hsl(220,15%,20%)" }}
                 >
                   {service.title}
                 </h3>
-
                 <p
-                  className={`text-sm ${
-                    isSelected ? (service.color === "blue" ? "text-blue-700" : "text-green-700") : "text-gray-600"
-                  }`}
+                  className="text-xs mt-0.5 leading-snug"
+                  style={{ color: isSelected ? "var(--brand-forest-mid)" : "hsl(220,8%,58%)" }}
                 >
                   {service.description}
                 </p>
@@ -109,13 +135,23 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
         })}
       </div>
 
-      {/* {formData.serviceType && (
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Selected Service:</strong> {serviceTypes.find((s) => s.id === formData.serviceType)?.title}
-          </p>
+      {/* Selection summary */}
+      {selectedUiIds.length > 0 && (
+        <div
+          className="px-4 py-3 rounded-xl text-sm font-medium animate-scale-in flex items-center gap-2"
+          style={{
+            background: "var(--brand-forest-light)",
+            border: "1.5px solid hsl(158,28%,80%)",
+            color: "var(--brand-forest)",
+          }}
+        >
+          <Check className="w-4 h-4 flex-shrink-0" />
+          <span>
+            {selectedUiIds.length === 1 ? "1 service selected" : `${selectedUiIds.length} services selected`}
+            {" — "}our team will assess everything during your free inspection.
+          </span>
         </div>
-      )} */}
+      )}
     </div>
   )
 }
