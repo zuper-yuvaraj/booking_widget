@@ -16,7 +16,12 @@ export interface FormData {
   start_time: string
   end_time: string
   selectedUser: string
+  preferredDate: string
+  hearAboutUs?: string
+  comments?: string
+  services?: string[]
   marketingConsent?: boolean
+  territory?: string
 }
 
 export interface UserSlot {
@@ -69,6 +74,16 @@ export interface ApiResponse {
   }
 }
 
+
+export interface UserProfile {
+  user_uid: string
+  first_name: string
+  last_name: string
+  designation: string
+  profile_picture: string
+  bio: string
+}
+
 export interface GoogleMapsPrediction {
   place_id: string
   description: string
@@ -78,10 +93,20 @@ export interface GoogleMapsPrediction {
   }
 }
 
+export interface Territory {
+  id: string
+  name: string
+}
+
+export type ServiceAreaStatus = 'idle' | 'checking' | 'serviced' | 'not_serviced' | 'unknown'
+
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: string | boolean | string[]) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean
+  territories?: Territory[]
+  serviceAreaStatus?: ServiceAreaStatus
+  onCheckServiceArea?: (address: string, lat: string, lng: string, zipcode?: string) => void
 }

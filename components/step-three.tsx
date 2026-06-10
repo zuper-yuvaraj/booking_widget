@@ -1,121 +1,83 @@
 "use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
+import { ClipboardList, CheckCircle } from "lucide-react"
 import type { StepProps } from "@/types/booking"
 
-export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const serviceTypes = [
-    {
-      id: "inspection",
-      title: "Roof Inspection",
-      description: "Thorough assessment of your roof's condition",
-      icon: HomeIcon,
-      color: "green",
-    },
-    {
-      id: "repair",
-      title: "Repair Service",
-      description: "Professional Roof repair service",
-      icon: Wrench,
-      color: "green",
-    },
-    {
-      id: "install_replace",
-      title: "Install/Replace",
-      description: "Expert installation or replacement of your roof",
-      icon: ShieldAlert,
-      color: "green"
-    },
-  ]
+const SERVICES = [
+  { id: "total_exterior_inspection", label: "Total Exterior Inspection", icon: "🏠" },
+  { id: "roof_inspection",           label: "Roof Inspection",           icon: "🔍" },
+  { id: "gutter_inspection",         label: "Gutter Inspection",         icon: "🌧️" },
+  { id: "siding_inspection",         label: "Siding Inspection",         icon: "🪟" },
+  { id: "storm_damage",              label: "Storm Damage",              icon: "⛈️" },
+  { id: "insurance_claim",           label: "Insurance Claim",           icon: "📋" },
+]
 
-  const handleServiceSelect = (serviceType: string) => {
-    onUpdateFormData("serviceType", serviceType)
+export default function StepThree({ formData, onUpdateFormData }: StepProps) {
+  const selected: string[] = formData.services ?? []
+
+  const toggle = (id: string) => {
+    const next = selected.includes(id)
+      ? selected.filter((s) => s !== id)
+      : [...selected, id]
+    onUpdateFormData("services", next)
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-12 h-12 mb-4 bg-green-100 rounded-full flex items-center justify-center">
-          <Wrench className="w-6 h-6 text-green-600" />
-        </div>
-        <h2 className="text-xl font-semibold text-gray-900">Choose type of service</h2>
-        <p className="text-gray-600 mt-2">Select the service you need</p>
+    <div className="max-w-md mx-auto px-4 sm:px-6 pt-6">
+
+      {/* STEP INDICATOR */}
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <div className="w-2 h-2 rounded-full bg-orange/40" />
+        <div className="w-2 h-2 rounded-full bg-orange/40" />
+        <div className="w-2 h-2 rounded-full bg-orange" />
+        <span className="text-xs text-slate-500 ml-1">Step 3 of 3</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {serviceTypes.map((service) => {
-          const Icon = service.icon
-          const isSelected = formData.serviceType === service.id
+      {/* HEADER */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-navy rounded-full mb-4">
+          <ClipboardList className="w-7 h-7 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-navy">What can we help with?</h2>
+        <p className="text-slate-500 text-sm mt-2">
+          Select all services you&apos;re interested in
+        </p>
+      </div>
 
+      {/* SERVICE TILES */}
+      <div className="grid grid-cols-2 gap-3">
+        {SERVICES.map(({ id, label, icon }) => {
+          const isSelected = selected.includes(id)
           return (
-            <div
-              key={service.id}
-              onClick={() => handleServiceSelect(service.id)}
-              className={`relative cursor-pointer rounded-lg border-2 p-6 transition-all duration-200 hover:shadow-md ${
+            <button
+              key={id}
+              type="button"
+              onClick={() => toggle(id)}
+              className={`relative flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 text-center transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-orange/30 ${
                 isSelected
-                  ? service.color === "blue"
-                    ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-green-500 bg-green-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  ? "border-orange bg-orange/5 shadow-sm"
+                  : "border-slate-200 bg-white hover:border-orange/40 hover:bg-orange/5"
               }`}
             >
               {isSelected && (
-                <div
-                  className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center ${
-                    service.color === "blue" ? "bg-blue-500" : "bg-green-500"
-                  }`}
-                >
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
+                <CheckCircle className="absolute top-2.5 right-2.5 w-4 h-4 text-orange" />
               )}
-
-              <div className="flex flex-col items-center text-center">
-                <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                    isSelected ? (service.color === "blue" ? "bg-blue-100" : "bg-green-100") : "bg-gray-100"
-                  }`}
-                >
-                  <Icon
-                    className={`w-8 h-8 ${
-                      isSelected ? (service.color === "blue" ? "text-blue-600" : "text-green-600") : "text-gray-600"
-                    }`}
-                  />
-                </div>
-
-                <h3
-                  className={`text-lg font-semibold mb-2 ${
-                    isSelected ? (service.color === "blue" ? "text-blue-900" : "text-green-900") : "text-gray-900"
-                  }`}
-                >
-                  {service.title}
-                </h3>
-
-                <p
-                  className={`text-sm ${
-                    isSelected ? (service.color === "blue" ? "text-blue-700" : "text-green-700") : "text-gray-600"
-                  }`}
-                >
-                  {service.description}
-                </p>
-              </div>
-            </div>
+              <span className="text-2xl leading-none">{icon}</span>
+              <span className={`text-sm font-semibold leading-snug ${isSelected ? "text-navy" : "text-slate-700"}`}>
+                {label}
+              </span>
+            </button>
           )
         })}
       </div>
 
-      {/* {formData.serviceType && (
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Selected Service:</strong> {serviceTypes.find((s) => s.id === formData.serviceType)?.title}
-          </p>
-        </div>
-      )} */}
+      {selected.length > 0 && (
+        <p className="mt-4 text-center text-xs text-slate-500">
+          {selected.length} service{selected.length > 1 ? "s" : ""} selected
+        </p>
+      )}
+
+      <div className="pb-4" />
     </div>
   )
 }

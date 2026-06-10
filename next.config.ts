@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production"
+const basePath = isProd ? "/sales_demo_new_account" : ""
+
 const nextConfig: NextConfig = {
-  output: 'export',
-  basePath: '/roofing_booking_widget',        // this does not work. need to manually change base after build
-  assetPrefix: '/roofing_booking_widget/',
+  ...(isProd && { output: "export" }),
+  basePath,
+  assetPrefix: basePath ? `${basePath}/` : "",
   trailingSlash: true,
 };
 

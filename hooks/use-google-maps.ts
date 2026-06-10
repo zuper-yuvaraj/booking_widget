@@ -13,7 +13,7 @@ export function useGoogleMaps({ apiKey, libraries = ["places"] }: UseGoogleMapsP
 
   const loadGoogleMaps = useCallback(() => {
     // Check if already loaded
-    if (window.google && window.google.maps) {
+    if ((window as any).google && (window as any).google.maps) {
       setIsLoaded(true)
       return Promise.resolve()
     }
@@ -23,7 +23,7 @@ export function useGoogleMaps({ apiKey, libraries = ["places"] }: UseGoogleMapsP
     if (existingScript) {
       return new Promise<void>((resolve, reject) => {
         const checkLoaded = () => {
-          if (window.google && window.google.maps) {
+          if ((window as any).google && (window as any).google.maps) {
             setIsLoaded(true)
             resolve()
           } else {

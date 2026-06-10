@@ -21,6 +21,16 @@ module.exports = {
         sans: ["var(--font-nunito-sans)"],
       },
       colors: {
+        navy: {
+          DEFAULT: "#1a2744",
+          light: "#253260",
+          dark: "#111b30",
+        },
+        orange: {
+          DEFAULT: "#f97316",
+          light: "#fb923c",
+          dark: "#ea6c08",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

@@ -1,14 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-sans: "Figtree", sans-serif;
+  --font-sans: var(--font-nunito-sans), sans-serif;
 }
 
 @theme inline {
+  /* Brand colors */
+  --color-navy: #1a2744;
+  --color-navy-light: #253260;
+  --color-navy-dark: #111b30;
+  --color-orange: #f97316;
+  --color-orange-light: #fb923c;
+  --color-orange-dark: #ea6c08;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -124,10 +131,3 @@
   }
 }
 
-.bg-primary {
-  background-color: #32cd32;
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

@@ -1,340 +1,205 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Calendar, Clock, User } from "lucide-react"
-import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
-import { useQueryParams } from "@/hooks/query-params.hooks"
+import { useState } from "react"
+import { Calendar, CheckCircle, AlertTriangle } from "lucide-react"
+import type { StepProps, TimeSlot } from "@/types/booking"
+import { useSlotAvailability } from "@/hooks/use-slot-availability"
+import { SHOW_USER_SELECTION } from "@/configs"
+import type { UserProfile } from "@/types/booking"
+
+/* ---------- helpers ---------- */
+
+function generateNext14Days(): Date[] {
+  const days: Date[] = []
+  const start = new Date()
+  start.setDate(start.getDate() + 1)
+  start.setHours(0, 0, 0, 0)
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    days.push(d)
+  }
+  return days
+}
+
+function toDateString(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+function formatTime(raw: string): string {
+  // "2026-04-24 14:00:00" → "2:00 PM"
+  const parts = raw.split(" ")
+  if (parts.length < 2) return raw
+  const [h, m] = parts[1].split(":").map(Number)
+  const ampm = h >= 12 ? "PM" : "AM"
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, "0")} ${ampm}`
+}
+
+function getInitials(first: string, last: string): string {
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
+}
+
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+/* ---------- component ---------- */
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    formData.selectedDate ? new Date(formData.selectedDate) : null,
-  )
-  const [availabilityData, setAvailabilityData] = useState<ApiResponse | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set())
+  const dates = generateNext14Days()
+  const [selectedDate, setSelectedDate] = useState(formData.selectedDate || "")
+  const [selectedSlotKey, setSelectedSlotKey] = useState(formData.start_time || "")
+  const [selectedUserId, setSelectedUserId] = useState(formData.selectedUser || "")
 
-  const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || ""
-  console.log("Company UID from URL:", COMPANY_UID)
+  const { status: slotsStatus, availability, users: allUsers, fetchSlots } = useSlotAvailability()
+  const [slotProfiles, setSlotProfiles] = useState<UserProfile[]>([])
 
-  const generateCalendarDates = () => {
-    const dates = []
-    const today = new Date()
-    let i = 0
-    while (dates.length < 7) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      // Skip Sundays (day 0)
-      if (date.getDay() !== 0) {
-        dates.push(date)
-      }
-      i++
-    }
-    return dates
-  }
+  // Find slots for the selected date from availability response
+  const dayData = availability.find((a) => a.date === selectedDate)
+  const slots: TimeSlot[] = dayData?.slots ?? []
 
-  const calendarDates = generateCalendarDates()
-
-  const fetchAvailability = async (date: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data')
-      }
-      const data: ApiResponse = await response.json()
-      if(!data.success) {
-        throw new Error(data.message || 'Failed to fetch availability data')
-      }
-
-      setAvailabilityData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching availability:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date)
-    const dateString = date.toISOString().split("T")[0]
-    onUpdateFormData("selectedDate", dateString)
-    // Clear previous selections when date changes
-    onUpdateFormData("selectedUser", "")
+  const handleDateClick = (date: Date) => {
+    const ds = toDateString(date)
+    setSelectedDate(ds)
+    setSelectedSlotKey("")
+    setSelectedUserId("")
+    setSlotProfiles([])
+    onUpdateFormData("selectedDate", ds)
     onUpdateFormData("selectedSlot", "")
-    // Fetch availability data for the selected date
-    fetchAvailability(dateString)
+    onUpdateFormData("start_time", "")
+    onUpdateFormData("end_time", "")
+    onUpdateFormData("selectedUser", "")
+    fetchSlots(ds)
   }
 
-  const handleUserSelect = (userId: string) => {
-    onUpdateFormData("selectedUser", userId)
-    onUpdateFormData("selectedSlot", "") // Clear slot selection when user changes
-  }
-
-  const handleSlotSelect = (slot: { display: string; original: TimeSlot }) => {
-    onUpdateFormData("selectedSlot", slot.display)
-    onUpdateFormData("start_time", slot.original.start_time)
-    onUpdateFormData("end_time", slot.original.end_time)
-  }
-
-  const toggleBioExpansion = (userId: string) => {
-    setExpandedBios(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(userId)) {
-        newSet.delete(userId)
-      } else {
-        newSet.add(userId)
-      }
-      return newSet
-    })
-  }
-
-  const truncateBio = (bio: string, userId: string) => {
-    if (!bio) return ""
-    
-    const isExpanded = expandedBios.has(userId)
-    
-    if (isExpanded) {
-      return bio
+  const handleSlotClick = (slot: TimeSlot) => {
+    const display = `${formatTime(slot.start_time)} – ${formatTime(slot.end_time)}`
+    setSelectedSlotKey(slot.start_time)
+    setSelectedUserId("")
+    onUpdateFormData("start_time", slot.start_time)
+    onUpdateFormData("end_time", slot.end_time)
+    onUpdateFormData("selectedSlot", display)
+    onUpdateFormData("selectedUser", "")
+    if (SHOW_USER_SELECTION && slot.users.length > 0) {
+      setSlotProfiles(allUsers.filter((u) => slot.users.includes(u.user_uid)))
+    } else {
+      setSlotProfiles([])
     }
-    
-    // Show first 200 characters, removing line breaks
-    const cleanBio = bio.replace(/\n/g, ' ')
-    return cleanBio.length > 200 ? cleanBio.substring(0, 200) + '...' : cleanBio
   }
 
-  // Auto-scroll to bottom when slot is selected
-  useEffect(() => {
-    if (formData.selectedSlot) {
-      // Small delay to ensure the booking summary is rendered
-      const timer = setTimeout(() => {
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth'
-        })
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [formData.selectedSlot])
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      timeZone: 'America/New_York'
-    })
+  const handleUserClick = (uid: string) => {
+    const next = selectedUserId === uid ? "" : uid
+    setSelectedUserId(next)
+    onUpdateFormData("selectedUser", next)
   }
 
-  // Helper function to transform API data to UserSlot format
-  const transformApiDataToUserSlots = (): UserSlot[] => {
-    if (!availabilityData?.data) return []
-    
-    const selectedDateData = availabilityData.data.availability.find(
-      (item) => item.date === formData.selectedDate
-    )
-    
-    if (!selectedDateData || selectedDateData.holiday || selectedDateData.slots.length === 0) {
-      return []
-    }
+  const selectedSlotObj = slots.find((s) => s.start_time === selectedSlotKey) ?? null
 
-    // Check if selected date is today
-    const today = new Date().toISOString().split('T')[0]
-    const isToday = formData.selectedDate === today
-    console.log("IS TODAY", isToday)
-    const currentTime = new Date()
-    const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000) // 1 hour from now
-
-    // Group slots by users with original slot data
-    const userSlotMap = new Map<string, { user: ApiUser; slots: Array<{ display: string; original: TimeSlot }> }>()
-
-    const parseUTCDateTime = (dateTimeString: string) => {
-      // Convert "2025-07-14 14:00:00" to "2025-07-14T14:00:00Z"
-      return new Date(dateTimeString.replace(' ', 'T') + 'Z');
-    };
-
-    selectedDateData.slots.forEach((slot: TimeSlot) => {
-      // Filter out slots that are less than 1 hour ahead if today
-      if (isToday) {
-        const slotStartTime = new Date(slot.start_time.replace(' ', 'T') + 'Z');
-        if (slotStartTime <= oneHourFromNow) {
-          return // Skip this slot
-        }
-      }
-      
-      
-
-      // Convert UTC to EST for UI display
-      const timeRange = `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      })}`
-      
-      slot.users.forEach((userId: string) => {
-        const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
-        if (user) {
-          if (!userSlotMap.has(userId)) {
-            userSlotMap.set(userId, { user, slots: [] })
-          }
-          userSlotMap.get(userId)!.slots.push({
-            display: timeRange,
-            original: slot
-          })
-        }
-      })
-    })
-
-    return Array.from(userSlotMap.values()).map(({ user, slots }) => ({
-      id: user.user_uid,
-      name: `${user.first_name} ${user.last_name}`,
-      avatar: user.profile_picture,
-      description: `${user.bio || ''}`,
-      slots: slots
-    }))
-  }
-
-  const userSlots = transformApiDataToUserSlots()
-  const selectedUser = userSlots.find((user: UserSlot) => user.id === formData.selectedUser)
+  /* ---------- UI ---------- */
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center mb-8">
-        <Calendar className="mx-auto w-12 h-12 mb-4 text-green-500" />
-        <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
-        <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
+    <div className="max-w-md mx-auto px-4 sm:px-6 pt-6">
+
+      {/* STEP INDICATOR */}
+      <div className="flex items-center justify-center gap-2 mb-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="w-2 h-2 rounded-full bg-orange/40" />
+        ))}
+        <div className="w-2 h-2 rounded-full bg-orange" />
+        <span className="text-xs text-slate-500 ml-1">Step 4 of 4</span>
       </div>
 
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+      {/* HEADER */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-navy rounded-full mb-4">
+          <Calendar className="w-7 h-7 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-navy">Choose Your Inspection Time</h2>
+        <p className="text-slate-500 text-sm mt-2">
+          Pick a date and we&apos;ll show available slots
+        </p>
+      </div>
+
+      {/* DATE STRIP */}
+      <div className="mb-6">
+        <p className="text-xs font-semibold text-navy uppercase tracking-wide mb-3">Select a Date</p>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {dates.map((date) => {
+            const ds = toDateString(date)
+            const isSelected = ds === selectedDate
             return (
               <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
+                key={ds}
+                type="button"
+                onClick={() => handleDateClick(date)}
+                className={`flex-shrink-0 w-14 flex flex-col items-center py-2.5 rounded-xl border-2 transition-all focus:outline-none ${
                   isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                    ? "border-orange bg-orange text-white shadow-md"
+                    : "border-slate-200 bg-white text-navy hover:border-orange/40"
                 }`}
               >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
+                <span className="text-xs font-medium opacity-80">{DAYS[date.getDay()]}</span>
+                <span className="text-lg font-bold leading-tight">{date.getDate()}</span>
+                <span className="text-xs opacity-70">{MONTHS[date.getMonth()]}</span>
               </button>
             )
           })}
         </div>
       </div>
 
+      {/* SLOT GRID */}
       {selectedDate && (
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            <User className="inline w-5 h-5 mr-2" />
-            Available Professionals for {formatDate(selectedDate)}
-          </h3>
-          
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading availability...</p>
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-navy uppercase tracking-wide mb-3">
+            Available Time Slots
+          </p>
+
+          {slotsStatus === "loading" && (
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-12 rounded-xl bg-slate-100 animate-pulse" />
+              ))}
             </div>
           )}
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">Error: {error}</p>
+
+          {slotsStatus === "error" && (
+            <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              Failed to load slots. Please try again.
             </div>
           )}
-          
-          {!loading && !error && userSlots.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No professionals available for this date.</p>
+
+          {slotsStatus === "loaded" && slots.length === 0 && (
+            <div className="flex items-center gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 text-amber-600" />
+              No slots available for this day. Please pick another date.
             </div>
           )}
-          
-          {!loading && !error && userSlots.length > 0 && (
-            <div className="space-y-4">
-              {userSlots.map((user: UserSlot) => {
-                const isSelected = formData.selectedUser === user.id
+
+          {slotsStatus === "loaded" && slots.length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              {slots.map((slot) => {
+                const isSelected = slot.start_time === selectedSlotKey
+                const label = `${formatTime(slot.start_time)} – ${formatTime(slot.end_time)}`
                 return (
-                  <div
-                    key={user.id}
-                    className={`border rounded-lg p-4 transition-colors ${
+                  <button
+                    key={slot.start_time}
+                    type="button"
+                    onClick={() => handleSlotClick(slot)}
+                    className={`relative px-3 py-3 rounded-xl border-2 text-sm font-medium transition-all focus:outline-none ${
                       isSelected
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
+                        ? "border-orange bg-orange text-white shadow-md"
+                        : "border-slate-200 bg-white text-navy hover:border-orange/40"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{user.name}</h4>
-                          <div className="text-sm text-gray-500">
-                            <p className="whitespace-pre-line">{truncateBio(user.description, user.id)}</p>
-                            {user.description && user.description.length > 200 && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleBioExpansion(user.id)
-                                }}
-                                className="text-green-600 hover:text-green-700 text-xs font-medium mt-1"
-                              >
-                                {expandedBios.has(user.id) ? 'View less' : 'View more'}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h5 className="text-sm font-medium text-gray-900 mb-3">
-                        <Clock className="inline w-4 h-4 mr-1" />
-                        Available Times
-                      </h5>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {user.slots.map((slot: { display: string; original: TimeSlot }, index: number) => {
-                          const isSlotSelected = formData.selectedSlot === slot.display && formData.selectedUser === user.id
-                          return (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                handleUserSelect(user.id)
-                                handleSlotSelect(slot)
-                              }}
-                              className={`p-2 text-center rounded-md border text-sm transition-colors ${
-                                isSlotSelected
-                                  ? "bg-primary text-white border-green-400"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                              }`}
-                            >
-                              {slot.display}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                    {isSelected && (
+                      <CheckCircle className="absolute top-1.5 right-1.5 w-3.5 h-3.5 text-white/80" />
+                    )}
+                    {label}
+                  </button>
                 )
               })}
             </div>
@@ -342,37 +207,74 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
         </div>
       )}
 
-      {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
-            <p>
-              <strong>Name:</strong> {formData.firstName} {formData.lastName}
+      {/* INSPECTOR CARDS */}
+      {SHOW_USER_SELECTION && selectedSlotObj && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-xs font-semibold text-navy uppercase tracking-wide">
+              Choose Your Inspector
             </p>
-            <p>
-              <strong>Phone:</strong> {formData.phone}
-            </p>
-            <p>
-              <strong>Email:</strong> {formData.email}
-            </p>
-            <p>
-              <strong>Address:</strong> {formData.address}
-            </p>
-            <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
-            </p>
-            <p>
-              <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
-            </p>
-            <p>
-              <strong>Professional:</strong> {selectedUser.name}
-            </p>
-            <p>
-              <strong>Time:</strong> {formData.selectedSlot}
-            </p>
+            <span className="text-xs text-slate-400 font-normal">(optional)</span>
           </div>
+
+          {slotProfiles.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {slotProfiles.map((profile) => {
+                const isSelected = selectedUserId === profile.user_uid
+                const fullName = `${profile.first_name} ${profile.last_name}`.trim()
+                return (
+                  <button
+                    key={profile.user_uid}
+                    type="button"
+                    onClick={() => handleUserClick(profile.user_uid)}
+                    className={`relative text-left rounded-2xl border-2 p-4 transition-all focus:outline-none ${
+                      isSelected
+                        ? "border-orange bg-orange/5 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-orange/40"
+                    }`}
+                  >
+                    {isSelected && (
+                      <CheckCircle className="absolute top-4 right-4 w-4 h-4 text-orange" />
+                    )}
+
+                    <div className="flex items-start gap-4">
+                      {profile.profile_picture ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={profile.profile_picture}
+                          alt={fullName}
+                          className="w-14 h-14 rounded-full object-cover flex-shrink-0 border border-slate-200"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-navy flex items-center justify-center flex-shrink-0 text-white font-bold">
+                          {getInitials(profile.first_name, profile.last_name)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-navy">{fullName}</p>
+                        {profile.designation && (
+                          <p className="text-xs text-orange font-medium mb-2">{profile.designation}</p>
+                        )}
+                        {profile.bio && (
+                          <p className="text-xs text-slate-600 leading-relaxed">{profile.bio}</p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {slotProfiles.length === 0 && (
+            <p className="text-sm text-slate-500 text-center py-2">
+              Inspector info unavailable for this slot.
+            </p>
+          )}
         </div>
       )}
+
+      <div className="pb-4" />
     </div>
   )
 }
