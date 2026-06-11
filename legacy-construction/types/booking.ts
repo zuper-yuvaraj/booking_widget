@@ -17,6 +17,8 @@ export interface FormData {
   end_time: string
   selectedUser: string
   marketingConsent?: boolean
+  job_description?: string
+  how_did_you_hear_about_us?: string
 }
 
 export interface UserSlot {

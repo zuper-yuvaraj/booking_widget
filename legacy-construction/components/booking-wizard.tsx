@@ -35,7 +35,9 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
-     // ...existing code...
+    marketingConsent: false,
+    job_description: "",
+    how_did_you_hear_about_us: "",
   })
 
   const searchParams = useQueryParams();

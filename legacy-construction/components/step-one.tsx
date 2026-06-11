@@ -23,7 +23,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
 
-  const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+  const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyB_LDXpb58SXx4I4dp0UVhKb1mJGqkDn8w"
   const { isLoaded, loadError } = useGoogleMaps({
     apiKey: GOOGLE_MAPS_API_KEY,
     libraries: ["places"],

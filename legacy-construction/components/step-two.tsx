@@ -8,6 +8,19 @@ import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
 import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
 
+const HEAR_ABOUT_US_OPTIONS = [
+  "Internet",
+  "Google",
+  "Truck",
+  "Referral",
+  "Fair",
+  "Google Local Services",
+  "Previous Customer",
+  "MN Home & Remodeling",
+  "MN Home & Garden",
+  "Trade Show",
+] as const
+
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
 
@@ -154,6 +167,28 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               e.stopPropagation()
             }}
           />
+        </div>
+
+        {/* How did you hear about us? */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            How did you hear about us?
+          </label>
+
+          <select
+            value={formData.how_did_you_hear_about_us || ""}
+            onChange={(e) =>
+              onUpdateFormData("how_did_you_hear_about_us", e.target.value)
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+          >
+            <option value="">Select an option</option>
+            {HEAR_ABOUT_US_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Marketing Consent */}
