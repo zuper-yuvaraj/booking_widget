@@ -125,7 +125,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
     const request = {
       input: inputValue,
       types: ["address"],
-      componentRestrictions: { country: "us" },
+      componentRestrictions: { country: "ca" },
     }
 
     autocompleteService.getPlacePredictions(request, (predictions: any[], status: string) => {

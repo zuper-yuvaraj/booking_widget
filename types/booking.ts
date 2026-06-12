@@ -1,4 +1,6 @@
 export interface FormData {
+  preferredDate: string
+  //jobType: string
   firstName: string
   lastName: string
   phone: string
@@ -16,6 +18,8 @@ export interface FormData {
   start_time: string
   end_time: string
   selectedUser: string
+  services: string
+  notes: string
   marketingConsent?: boolean
 }
 
