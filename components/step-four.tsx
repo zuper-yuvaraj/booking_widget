@@ -35,29 +35,97 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     return dates
   }
 
-  const calendarDates = generateCalendarDates()
+  const generateOneMonthDates = () => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-  const fetchAvailability = async (date: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data')
-      }
-      const data: ApiResponse = await response.json()
-      if(!data.success) {
-        throw new Error(data.message || 'Failed to fetch availability data')
-      }
+  const dates: Date[] = []
+  let i = 0
 
-      setAvailabilityData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching availability:', err)
-    } finally {
-      setLoading(false)
+  while (i < 30) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    
+    // Skip Saturday (6) and Sunday (0)
+    if (d.getDay() !== 0 && d.getDay() !== 6) {
+      dates.push(d)
     }
+    
+    i++
   }
+
+  return dates
+}
+
+//const calendarDates = generateCalendarDates()
+const calendarDates = generateOneMonthDates()
+
+  // Build service territory from entered address
+ 
+  const TERRITORY_UID = searchParams.get("territory_uid") || "";
+ 
+
+
+
+//   const fetchAvailability = async (date: string) => {
+//     setLoading(true)
+//     setError(null)
+//     try {
+//       const params = new URLSearchParams({
+//       date,
+//       serviceType: formData.serviceType,
+//       company_uid: COMPANY_UID,
+//       latitude: formData.latitude || "",
+//       longitude: formData.longitude || "",
+//       zipcode: formData.zipcode || "",
+//       address: formData.address || "",
+//     })
+//       const response = await fetch(
+//   `${ASSISTED_SCHEDULING_WEBHOOK}?${params.toString()}`
+// )
+//       if (!response.ok) {
+//         throw new Error('Failed to fetch availability data')
+
+//       }
+//       const data: ApiResponse = await response.json()
+//       if(!data.success) {
+//         throw new Error(data.message || 'Failed to fetch availability data')
+//       }
+
+//       setAvailabilityData(data)
+//     } catch (err) {
+//       setError(err instanceof Error ? err.message : 'An error occurred')
+//       console.error('Error fetching availability:', err)
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+const fetchAvailability = async (date: string) => {
+  setLoading(true)
+  setError(null)
+  try {
+    const params = new URLSearchParams({
+      date,
+      serviceType: formData.serviceType,
+      company_uid: COMPANY_UID,
+      latitude: formData.latitude || "",
+      longitude: formData.longitude || "",
+      zipcode: formData.zipcode || "",
+      address: formData.address || "",
+    })
+    const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?${params.toString()}`)
+    const data: ApiResponse = await response.json()
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch availability data')
+    }
+    setAvailabilityData(data)
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'An error occurred')
+    console.error('Error fetching availability:', err)
+  } finally {
+    setLoading(false)
+  }
+}
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
@@ -211,31 +279,43 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center mb-8">
-        <Calendar className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <Calendar className="mx-auto w-12 h-12 mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
         <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
       </div>
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
-        <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                }`}
-              >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{date.getDate()}</div>
-              </button>
-            )
-          })}
+        
+        {/* Week Navigation with Calendar */}
+        <div className="flex items-center justify-center mb-6">
+          {/* Calendar Grid - All dates visible row by row */}
+          <div className="grid grid-cols-5 gap-3 w-full">
+            {calendarDates.map((date, index) => {
+              const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+              const monthName = date.toLocaleDateString('en-US', { month: 'short' })
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(date)}
+                  className={`p-3 text-center rounded-lg border transition-colors ${
+                    isSelected
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-secondary/10 hover:border-secondary/30"
+                  }`}
+                >
+                  <div className={`text-xs font-medium ${isSelected ? "text-white" : "text-gray-600"}`}>
+                    {dayName}, {monthName} {date.getDate()}
+                  </div>
+                  <div className={`text-lg font-bold mt-1 ${isSelected ? "text-white" : "text-gray-900"}`}>
+                    {date.getDate()}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -248,16 +328,31 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
           
           {loading && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="text-gray-600 mt-2">Loading availability...</p>
             </div>
           )}
           
-          {error && (
+          {/* {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800">Error: {error}</p>
             </div>
-          )}
+          )} */}
+          {error && (
+  <div className="border border-primary rounded-lg p-4 flex items-start gap-3 bg-primary/5">
+    <span className="text-xl mt-0.5">
+      {error.toLowerCase().includes("outside") ? "📍" : "⚠️"}
+    </span>
+    <div>
+      <p className="font-medium text-primary">
+        {error.toLowerCase().includes("outside") ? "Service Unavailable" : "Something went wrong"}
+      </p>
+      <p className="text-sm mt-1 text-primary/80">
+        {error}
+      </p>
+    </div>
+  </div>
+)}
           
           {!loading && !error && userSlots.length === 0 && (
             <div className="text-center py-8">
@@ -274,13 +369,13 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                     key={user.id}
                     className={`border rounded-lg p-4 transition-colors ${
                       isSelected
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-200 bg-white hover:border-secondary/30 hover:bg-secondary/5"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                           <img
                             src={user.avatar}
                             alt={user.name}
@@ -297,7 +392,7 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                                   e.stopPropagation()
                                   toggleBioExpansion(user.id)
                                 }}
-                                className="text-green-600 hover:text-green-700 text-xs font-medium mt-1"
+                                className="text-primary hover:text-secondary text-xs font-medium mt-1"
                               >
                                 {expandedBios.has(user.id) ? 'View less' : 'View more'}
                               </button>
@@ -324,8 +419,8 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
                               }}
                               className={`p-2 text-center rounded-md border text-sm transition-colors ${
                                 isSlotSelected
-                                  ? "bg-primary text-white border-green-400"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                                  ? "bg-primary text-white border-primary"
+                                  : "bg-white text-gray-700 border-gray-300 hover:bg-secondary/10 hover:border-secondary/30"
                               }`}
                             >
                               {slot.display}
@@ -343,9 +438,9 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       )}
 
       {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
+        <div className="bg-primary/5 border border-primary/30 rounded-lg p-6">
+          <h4 className="text-lg font-medium text-primary mb-4">Booking Summary</h4>
+          <div className="space-y-2 text-sm text-gray-700">
             <p>
               <strong>Name:</strong> {formData.firstName} {formData.lastName}
             </p>

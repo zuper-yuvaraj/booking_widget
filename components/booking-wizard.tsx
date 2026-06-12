@@ -49,12 +49,20 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
-    const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
-  }
+  const hasRequiredFields = !!(
+    formData.firstName &&
+    formData.lastName &&
+    formData.phone &&
+    formData.email
+  )
+
+  const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
+  const isEmailValid = formData.email ? isValidEmail(formData.email) : false
+  const isConsentGiven = formData.marketingConsent === true
+
+  return hasRequiredFields && isPhoneValid && isEmailValid && isConsentGiven
+}
+
 
   const isStep3Valid = () => {
     return !!formData.serviceType
@@ -141,13 +149,13 @@ export default function BookingWizard() {
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+                        step <= currentStep ? "bg-primary text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {step}
                     </div>
                     {step < 4 && (
-                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
+                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-primary" : "bg-gray-200"}`} />
                     )}
                   </div>
                 ))}

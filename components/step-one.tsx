@@ -210,7 +210,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <MapPin className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <MapPin className="mx-auto w-12 h-12 mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-gray-900">What's your address?</h2>
         <p className="text-gray-600 mt-2">Search and select your location</p>
       </div>
@@ -223,7 +223,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
           onChange={(e) => handleAddressSearch(e.target.value)}
           onFocus={() => searchValue && setShowPredictions(true)}
           placeholder="Enter your street address"
-          className="w-full px-4 py-3 border-2 border-green-500 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg"
+          className="w-full px-4 py-3 border-2 border-primary rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-lg"
           disabled={!isLoaded}
         />
 
@@ -233,7 +233,7 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
               <div
                 key={prediction.place_id}
                 onClick={() => handleAddressSelect(prediction)}
-                className="px-4 py-3 cursor-pointer border-b last:border-b-0 border-gray-100 hover:bg-green-50 transition-colors"
+                className="px-4 py-3 cursor-pointer border-b last:border-b-0 border-gray-100 hover:bg-primary/5 transition-colors"
               >
                 <div className="flex items-start">
                   <MapPin className="w-4 h-4 text-gray-400 mr-3 mt-1 flex-shrink-0" />
@@ -268,8 +268,8 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
       </div>
 
       {formData.address && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-800">
+        <div className="p-4 bg-primary/5 border border-primary/30 rounded-lg">
+          <p className="text-sm text-primary">
             <MapPin className="inline w-4 h-4 mr-1" />
             Selected: {formData.address}
           </p>
