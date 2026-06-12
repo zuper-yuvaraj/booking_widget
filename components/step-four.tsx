@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
+import { COMPANY_UUID,TIME_ZONE } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {

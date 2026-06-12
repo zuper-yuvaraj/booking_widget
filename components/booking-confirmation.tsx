@@ -10,17 +10,9 @@ interface BookingConfirmationProps {
 
 export default function BookingConfirmation({ formData }: BookingConfirmationProps) {
    const formatDate = (dateString: string) => {
-    // dateString = dateString + " 00:00:00"
-    // const date = new Date(dateString)
-
-    return dateString
-    // return date.toLocaleDateString("en-US", {
-    //   weekday: "long",
-    //   year: "numeric",
-    //   month: "long",
-    //   day: "numeric",
-    //   timeZone: TIME_ZONE
-    // })
+    if (!dateString) return ""
+    const [year, month, day] = dateString.split("-")
+    return `${month}/${day}/${year}`
   }
 
   const formatTime = (timeSlot: string) => {
@@ -39,8 +31,8 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
         <p className="text-lg text-gray-600 mb-8">
           Your booking is scheduled for{" "}
           <span className="font-semibold text-green-600">
-            {formatDate(formData.preferredDate)}
-            {formData.preferredTimeSlot && <>, {formatTime(formData.preferredTimeSlot)}</>}
+            {formatDate(formData.preferredDate)} 
+            {formData.preferredTimeSlot && <>, at {formatTime(formData.preferredTimeSlot)}</>}
           </span>
         </p>
       </div>

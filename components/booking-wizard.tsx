@@ -11,7 +11,6 @@ import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { CREATE_BOOKING_WEBHOOK, COMPANY_UUID } from "@/configs"
-import {  useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -22,7 +21,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: "inspection",
     address: "",
     street: "",
     city: "",
@@ -42,8 +41,8 @@ export default function BookingWizard() {
     description: "",
   })
 
-  const searchParams = useQueryParams();
-  const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
+
+  const COMPANY_UID = COMPANY_UUID
 
   const handleUpdateFormData = (field: keyof FormData, value: string | boolean | Record<string, string>) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
