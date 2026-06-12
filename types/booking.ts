@@ -1,4 +1,7 @@
 export interface FormData {
+  preferredDate: string
+  additionalComments?: string
+  //jobType: string
   firstName: string
   lastName: string
   phone: string
