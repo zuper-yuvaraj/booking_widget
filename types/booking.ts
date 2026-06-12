@@ -3,7 +3,7 @@ export interface FormData {
   lastName: string
   phone: string
   email: string
-  serviceType: string
+  serviceType: string[]
   address: string
   street: string
   city: string
@@ -16,7 +16,9 @@ export interface FormData {
   start_time: string
   end_time: string
   selectedUser: string
-  marketingConsent?: boolean
+  selectedServices: string[] // New field to capture all selected services
+  marketingConsent: boolean
+  job_description?: string
 }
 
 export interface UserSlot {
@@ -80,7 +82,7 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: FormData[keyof FormData]) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean

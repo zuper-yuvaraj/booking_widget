@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
+import Script from "next/script"; // ✅ ADD THIS
 import "./globals.css";
 
 const nunitoSans = Nunito_Sans({
@@ -20,9 +21,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${nunitoSans.variable} antialiased`}
-      >
+      <head>
+        {/* ✅ Google Ads Global Tag */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-652527712"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'AW-652527712');
+          `}
+        </Script>
+      </head>
+
+      <body className={`${nunitoSans.variable} antialiased`}>
         {children}
       </body>
     </html>

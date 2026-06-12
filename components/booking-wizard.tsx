@@ -8,10 +8,9 @@ import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
 import StepThree from "./step-three"
-import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
 import { CREATE_BOOKING_WEBHOOK } from "@/configs"
-import {  useQueryParams } from "@/hooks/query-params.hooks"
+import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -22,7 +21,8 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: [],
+    selectedServices: [],
     address: "",
     street: "",
     city: "",
@@ -35,37 +35,59 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    marketingConsent: false,
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const handleUpdateFormData = (field: keyof FormData, value: FormData[keyof FormData]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  // Step 1 validation (Personal Information)
   const isStep1Valid = () => {
-    return !!formData.address
+    if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
+      return false
+    }
+
+    const isPhoneValid = isValidPhoneNumber(formData.phone)
+    if (!isPhoneValid) {
+      return false
+    }
+
+    const isEmailValid = isValidEmail(formData.email)
+    if (!isEmailValid) {
+      return false
+    }
+
+    return true
   }
 
+  // Step 2 validation (Address)
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.lastName && formData.phone && formData.email)
-    const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
-    const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    
-    return hasRequiredFields && isPhoneValid && isEmailValid
+    return formData.address !== "" && formData.latitude !== "" && formData.longitude !== ""
   }
 
+  // Step 3 validation (Services and Date)
   const isStep3Valid = () => {
-    return !!formData.serviceType
-  }
-
-  const isStep4Valid = () => {
-    return !!(formData.selectedDate && formData.selectedSlot && formData.selectedUser)
+    return (
+      Array.isArray(formData.serviceType) &&
+      formData.serviceType.length > 0 &&
+      formData.selectedDate !== "" &&
+      formData.marketingConsent === true
+    )
   }
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    // Validate before moving to next step
+    if (currentStep === 1 && !isStep1Valid()) {
+      return
+    }
+    if (currentStep === 2 && !isStep2Valid()) {
+      return
+    }
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -91,12 +113,21 @@ export default function BookingWizard() {
         console.error('Failed to submit booking:', response.status, response.statusText)
       } else {
         console.log('Booking submitted successfully')
+
+        if (typeof window !== "undefined" && window.gtag) {
+        window.gtag('event', 'conversion', {
+          send_to: 'AW-652527712/2bfTCL-6uY0cEOCQk7cC',
+          value: 1.0,
+          currency: 'USD'
+        });
+      }
+       setIsBookingConfirmed(true)
       }
     } catch (error) {
       console.error('Error submitting booking:', error)
     } finally {
       setIsSubmitting(false)
-      setIsBookingConfirmed(true)
+      
     }
   }
 
@@ -116,8 +147,6 @@ export default function BookingWizard() {
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
       case 3:
         return <StepThree {...stepProps} isValid={isStep3Valid()} />
-      case 4:
-        return <StepFour {...stepProps} isValid={isStep4Valid()} />
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
@@ -131,13 +160,13 @@ export default function BookingWizard() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 4</div>
+              <div className="text-sm text-gray-500">Step {currentStep} of 3</div>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-4 hidden">
               <div className="flex items-center">
-                {[1, 2, 3, 4].map((step) => (
+                {[1, 2, 3].map((step) => (
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
@@ -146,7 +175,7 @@ export default function BookingWizard() {
                     >
                       {step}
                     </div>
-                    {step < 4 && (
+                    {step < 3 && (
                       <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
                     )}
                   </div>
@@ -162,6 +191,7 @@ export default function BookingWizard() {
           <div className="border-t border-gray-200 px-6 py-4">
             <div className="flex justify-between">
               <button
+                type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center px-4 py-2 rounded-md transition-colors ${
@@ -172,20 +202,19 @@ export default function BookingWizard() {
                 Back
               </button>
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <button
+                  type="button"
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
-                    (currentStep === 3 && !isStep3Valid())
+                    (currentStep === 2 && !isStep2Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/80"
+                      : "bg-green-600 text-white hover:bg-green-700"
                   }`}
                 >
                   Continue
@@ -193,15 +222,16 @@ export default function BookingWizard() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={handleSubmit}
-                  disabled={!isStep4Valid() || isSubmitting}
-                  className={`px-6 py-2 rounded-md transition-colors ${
-                    !isStep4Valid() || isSubmitting
+                  disabled={!isStep3Valid() || isSubmitting}
+                  className={`px-6 py-2 rounded-md transition-colors font-medium ${
+                    !isStep3Valid() || isSubmitting
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/80"
+                      : "bg-green-600 text-white hover:bg-green-700"
                   }`}
                 >
-                  {isSubmitting ? "Submitting..." : "Confirm Booking"}
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               )}
             </div>
