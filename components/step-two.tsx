@@ -25,6 +25,7 @@ const FIXED_SLOTS = [
   { display: "9AM - 12PM", startHour: 9, endHour: 12 },
   { display: "12PM - 3PM", startHour: 12, endHour: 15 },
   { display: "3PM - 6PM", startHour: 15, endHour: 18 },
+  { display: "6PM - 9PM", startHour: 18, endHour: 21 },
 ]
 
 function localHourToUTC(dateStr: string, hour: number, timezone: string): string {
@@ -332,16 +333,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
-              <a
-                href={TERMS_OF_SERVICE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
-              >
-                Terms of Service
-              </a>{" "}
-              and{" "}
+             By submitting this form and signing up for texts, you consent to receive text messages from Restoration Roofing at the number provided, including messages sent by autodialer. Consent is not a condition of purchase. Msg & data rates may apply. Msg frequency varies. Unsubscribe at any time by replying STOP or clicking the unsubscribe link (where available) and no further messages will be sent. Reply HELP for help. Information will not be shared with third parties. View our{" "}
+              
+              
               <a
                 href={PRIVACY_POLICY}
                 target="_blank"
