@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { isValidPhoneNumber } from "react-phone-number-input"
-import { isValidEmail } from "@/lib/utils"
+import { isValidEmail, isValidMMDDYYYY } from "@/lib/utils"
 import type { FormData } from "@/types/booking"
 import StepOne from "./step-one"
 import StepTwo from "./step-two"
@@ -22,7 +22,7 @@ export default function BookingWizard() {
     lastName: "",
     phone: "",
     email: "",
-    serviceType: "",
+    serviceType: "Inspection",
     address: "",
     street: "",
     city: "",
@@ -54,12 +54,19 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
+    const hasRequiredFields = !!(
+      formData.firstName &&
+      formData.phone &&
+      formData.email &&
+      formData.preferredDate &&
+      formData.preferredTimeSlot
+    )
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
+    const isDateValid = formData.preferredDate ? isValidMMDDYYYY(formData.preferredDate) : false
     const hasConsent = formData.marketingConsent === true
 
-    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
+    return hasRequiredFields && isPhoneValid && isEmailValid && isDateValid && hasConsent
   }
 
   const isStep3Valid = () => {
