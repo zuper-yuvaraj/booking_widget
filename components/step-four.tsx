@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
 import { ASSISTED_SCHEDULING_WEBHOOK,COMPANY_UUID,TIME_ZONE } from "@/configs"
@@ -34,15 +34,13 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     const dates = []
     const today = new Date()
     let i = 1
-    while (dates.length < 7) {
+    while (dates.length < 30) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
-      console.log("Generated date:", date, "Day of week:", date.getDay())
-      // Skip Sundays (day 0)
-      if (date.getDay() == 0 || date.getDay() == 6) {
-        // dates.push(date)
+      const weekday = date.toLocaleDateString("en-US", { timeZone: TIME_ZONE, weekday: "short" })
+      if (weekday === "Sun" || weekday === "Sat") {
         i++
-        continue;
+        continue
       }
         dates.push(date)
 
@@ -53,11 +51,13 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
 
   const calendarDates = generateCalendarDates()
 
-  const fetchAvailability = async (date: string) => {
+  const fetchAvailability = async () => {
     setLoading(true)
     setError(null)
+    const startDate = calendarDates[0].toISOString().split("T")[0]
+    const endDate = calendarDates[calendarDates.length - 1].toISOString().split("T")[0]
     try {
-      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}`)
+      const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${startDate}&serviceType=${formData.serviceType}&company_uid=${COMPANY_UID}&startDate=${startDate}&endDate=${endDate}`)
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
@@ -75,6 +75,10 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     }
   }
 
+  useEffect(() => {
+    fetchAvailability()
+  }, [])
+
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
     const dateString = date.toISOString().split("T")[0]
@@ -82,8 +86,6 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     // Clear previous selections when date changes
     onUpdateFormData("selectedUser", "")
     onUpdateFormData("selectedSlot", "")
-    // Fetch availability data for the selected date
-    fetchAvailability(dateString)
   }
 
   const handleUserSelect = (userId: string) => {
@@ -139,6 +141,30 @@ const formatDateOnly = (date: Date) => {
     timeZone:TIME_ZONE,
   });
 };
+
+  const hasAvailableSlots = (date: Date): boolean => {
+    if (!availabilityData?.data) return false
+    const dateString = date.toISOString().split("T")[0]
+    const dateData = availabilityData.data.availability.find((item) => item.date === dateString)
+    if (!dateData || dateData.holiday || dateData.slots.length === 0) return false
+
+    const now = new Date()
+    const cutoff = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    if (cutoff.getMinutes() > 0 || cutoff.getSeconds() > 0 || cutoff.getMilliseconds() > 0) {
+      cutoff.setHours(cutoff.getHours() + 1, 0, 0, 0)
+    } else {
+      cutoff.setMinutes(0, 0, 0)
+    }
+
+    const parseUTCDateTime = (s: string) => new Date(s.replace(' ', 'T') + 'Z')
+    const ALLOWED_HOURS = [8, 10, 12]
+
+    return dateData.slots.some((slot: TimeSlot) => {
+      const slotStartTime = new Date(parseUTCDateTime(slot.start_time).toLocaleString('en-US', { timeZone: TIME_ZONE }))
+      return ALLOWED_HOURS.includes(slotStartTime.getHours()) && slotStartTime >= cutoff
+    })
+  }
+
   // Helper function to transform API data to UserSlot format
   const transformApiDataToUserSlots = (): UserSlot[] => {
     if (!availabilityData?.data) return []
@@ -239,24 +265,36 @@ const formatDateOnly = (date: Date) => {
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Select Date</h3>
+        {loading && (
+          <div className="flex flex-col items-center py-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-3"></div>
+            <p className="text-gray-500 text-sm">Checking for availability...</p>
+          </div>
+        )}
         <div className="grid grid-cols-7 gap-2 mb-6">
-          {calendarDates.slice(0, 21).map((date, index) => {
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`p-3 text-center rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
-                }`}
-              >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
-                <div className="text-lg font-bold">{formatDateOnly(date)}</div>
-              </button>
-            )
-          })}
+          {loading
+            ? null
+            : calendarDates.slice(0, 30).map((date, index) => {
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+                const isDisabled = !hasAvailableSlots(date)
+                return (
+                  <button
+                    key={index}
+                    onClick={() => !isDisabled && handleDateSelect(date)}
+                    disabled={isDisabled}
+                    className={`p-3 text-center rounded-lg border transition-colors ${
+                      isDisabled
+                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                        : isSelected
+                        ? "bg-primary text-white border-green-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                    }`}
+                  >
+                    <div className="text-xs font-medium">{formatDate(date)}</div>
+                    <div className="text-lg font-bold">{formatDateOnly(date)}</div>
+                  </button>
+                )
+              })}
         </div>
       </div>
 
