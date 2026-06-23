@@ -30,12 +30,11 @@ export default function BookingConfirmation({
     })
   }
 
-  /* ---------------- GET CURRENT DATE IN TIMEZONE + 7 DAYS ---------------- */
+  /* ---------------- GET CURRENT DATE IN TIMEZONE + 3 DAYS ---------------- */
 
   const getDateInTimezone = () => {
     const now = new Date()
-    // Add 7 days to the current date
-    now.setDate(now.getDate())
+    now.setDate(now.getDate() + 3)
 
     return now.toLocaleDateString("en-US", {
       weekday: "long",

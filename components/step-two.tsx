@@ -6,7 +6,7 @@ import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE, COMPANY_UID } from "@/configs"
+import { COMPANY_NAME, PRIVACY_POLICY, COMPANY_UID } from "@/configs"
 
 export default function StepTwo({
   formData,
@@ -242,16 +242,7 @@ export default function StepTwo({
               >
                 Privacy Policy
               </a>
-              {" "}and{" "}
-              <a 
-                href={TERMS_OF_SERVICE}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
-              >
-                Terms of Service
-              </a>
-              .
+              
             </label>
 
           </div>
