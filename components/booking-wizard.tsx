@@ -35,7 +35,7 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
-    marketingConsent: false,
+    //marketingConsent: false,
   })
 
   const searchParams = useQueryParams();
@@ -74,8 +74,8 @@ export default function BookingWizard() {
     return (
       Array.isArray(formData.serviceType) &&
       formData.serviceType.length > 0 &&
-      formData.selectedDate !== "" &&
-      formData.marketingConsent === true
+      formData.selectedDate !== "" 
+      
     )
   }
 
