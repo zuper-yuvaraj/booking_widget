@@ -4,6 +4,8 @@ export interface FormData {
   phone: string
   email: string
   serviceType: string
+  jobDescription: string
+  custom_fields: Record<string, string>
   address: string
   street: string
   city: string

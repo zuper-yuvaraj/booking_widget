@@ -2,7 +2,7 @@
 
 import { PartyPopper } from "lucide-react"
 import type { FormData } from "@/types/booking"
-import { COMPANY_NAME } from "@/configs"
+import { COMPANY_NAME, getServiceTitle } from "@/configs"
 
 interface BookingConfirmationProps {
   formData: FormData
@@ -59,8 +59,14 @@ export default function BookingConfirmation({ formData }: BookingConfirmationPro
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Service:</span>
-            <span className="font-medium capitalize">{formData.serviceType}</span>
+            <span className="font-medium">{getServiceTitle(formData.serviceType)}</span>
           </div>
+          {formData.jobDescription && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Description:</span>
+              <span className="font-medium text-right max-w-[60%]">{formData.jobDescription}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-gray-600">Address:</span>
             <span className="font-medium">{formData.address}</span>

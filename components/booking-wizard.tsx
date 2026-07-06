@@ -10,7 +10,7 @@ import StepTwo from "./step-two"
 import StepThree from "./step-three"
 import StepFour from "./step-four"
 import BookingConfirmation from "./booking-confirmation"
-import { CREATE_BOOKING_WEBHOOK } from "@/configs"
+import { CREATE_BOOKING_WEBHOOK, getServiceTitle } from "@/configs"
 import {  useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function BookingWizard() {
@@ -23,6 +23,8 @@ export default function BookingWizard() {
     phone: "",
     email: "",
     serviceType: "",
+    jobDescription: "",
+    custom_fields: {},
     address: "",
     street: "",
     city: "",
@@ -84,6 +86,15 @@ export default function BookingWizard() {
     }
   }
 
+  const buildBookingPayload = () => ({
+    ...formData,
+    custom_fields: {
+      "Service chosen": getServiceTitle(formData.serviceType),
+      "Description": formData.jobDescription,
+    },
+    job_description: formData.jobDescription,
+  })
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
@@ -92,7 +103,7 @@ export default function BookingWizard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(buildBookingPayload())
       })
       
       if (!response.ok) {

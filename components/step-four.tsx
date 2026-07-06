@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Calendar, Clock, User } from "lucide-react"
 import type { StepProps, UserSlot, ApiResponse, ApiUser, TimeSlot } from "@/types/booking"
-import { ASSISTED_SCHEDULING_WEBHOOK } from "@/configs"
+import { ASSISTED_SCHEDULING_WEBHOOK, getServiceTitle } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 export default function StepFour({ formData, onUpdateFormData }: StepProps) {
@@ -237,18 +237,13 @@ const fetchAvailability = async (date: string) => {
       
       
 
-      // Convert UTC to EST for UI display
-      const timeRange = `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
+      // Convert UTC to EST for UI display — show start time only
+      const timeDisplay = parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true,
         timeZone: 'America/New_York'
-      })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York'
-      })}`
+      })
       
       slot.users.forEach((userId: string) => {
         const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
@@ -257,7 +252,7 @@ const fetchAvailability = async (date: string) => {
             userSlotMap.set(userId, { user, slots: [] })
           }
           userSlotMap.get(userId)!.slots.push({
-            display: timeRange,
+            display: timeDisplay,
             original: slot
           })
         }
@@ -282,6 +277,9 @@ const fetchAvailability = async (date: string) => {
         <Calendar className="mx-auto w-12 h-12 mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
         <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
+        <p className="text-base md:text-lg text-gray-700 mt-4 font-medium">
+          Roof inspections generally take about an hour and a half.
+        </p>
       </div>
 
       <div>
@@ -454,8 +452,13 @@ const fetchAvailability = async (date: string) => {
               <strong>Address:</strong> {formData.address}
             </p>
             <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
+              <strong>Service:</strong> {getServiceTitle(formData.serviceType)}
             </p>
+            {formData.jobDescription && (
+              <p>
+                <strong>Description:</strong> {formData.jobDescription}
+              </p>
+            )}
             <p>
               <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}
             </p>

@@ -1,27 +1,10 @@
 "use client"
 
-import { Wrench, Search, HomeIcon, ShieldAlert } from "lucide-react"
+import { Wrench } from "lucide-react"
 import type { StepProps } from "@/types/booking"
+import { SERVICE_TYPES } from "@/configs"
 
 export default function StepThree({ formData, onUpdateFormData }: StepProps) {
-  const serviceTypes = [
-    {
-      id: "inspection",
-      title: "Roof Inspection",
-      description: "Thorough assessment of your roof's condition",
-      icon: HomeIcon,
-      color: "green",
-    },
-    {
-      id: "repair",
-      title: "Repair Service",
-      description: "Professional Roof repair service",
-      icon: Wrench,
-      color: "green",
-    },
-    
-  ]
-
   const handleServiceSelect = (serviceType: string) => {
     onUpdateFormData("serviceType", serviceType)
   }
@@ -36,9 +19,8 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
         <p className="text-gray-600 mt-2">Select the service you need</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-
-        {serviceTypes.map((service) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {SERVICE_TYPES.map((service) => {
           const Icon = service.icon
           const isSelected = formData.serviceType === service.id
 
@@ -46,21 +28,15 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
             <div
               key={service.id}
               onClick={() => handleServiceSelect(service.id)}
-              className={`relative cursor-pointer rounded-lg border-2 p-6 transition-all duration-200 hover:shadow-md ${
+              className={`relative cursor-pointer rounded-lg border-2 p-5 transition-all duration-200 hover:shadow-md ${
                 isSelected
-                  ? service.color === "blue"
-                    ? "border-secondary bg-secondary/5 shadow-md"
-                    : "border-primary bg-primary/5 shadow-md"
+                  ? "border-primary bg-primary/5 shadow-md"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
               {isSelected && (
-                <div
-                  className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center border-2 bg-white ${
-                    service.color === "blue" ? "border-secondary" : "border-primary"
-                  }`}
-                >
-                  <svg className={`w-4 h-4 ${service.color === "blue" ? "text-secondary" : "text-primary"}`} fill="currentColor" viewBox="0 0 20 20">
+                <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center border-2 bg-white border-primary">
+                  <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -72,28 +48,26 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
               <div className="flex flex-col items-center text-center">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                    isSelected ? (service.color === "blue" ? "bg-secondary/10" : "bg-primary/10") : "bg-gray-100"
+                  className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
+                    isSelected ? "bg-primary/10" : "bg-gray-100"
                   }`}
                 >
                   <Icon
-                    className={`w-8 h-8 ${
-                      isSelected ? (service.color === "blue" ? "text-secondary" : "text-primary") : "text-gray-600"
-                    }`}
+                    className={`w-7 h-7 ${isSelected ? "text-primary" : "text-gray-600"}`}
                   />
                 </div>
 
                 <h3
-                  className={`text-lg font-semibold mb-2 ${
-                    isSelected ? (service.color === "blue" ? "text-secondary" : "text-primary") : "text-gray-900"
+                  className={`text-base font-semibold mb-1 ${
+                    isSelected ? "text-primary" : "text-gray-900"
                   }`}
                 >
                   {service.title}
                 </h3>
 
                 <p
-                  className={`text-sm ${
-                    isSelected ? (service.color === "blue" ? "text-secondary" : "text-primary") : "text-gray-600"
+                  className={`text-xs ${
+                    isSelected ? "text-primary" : "text-gray-600"
                   }`}
                 >
                   {service.description}
@@ -104,13 +78,19 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
         })}
       </div>
 
-      {/* {formData.serviceType && (
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Selected Service:</strong> {serviceTypes.find((s) => s.id === formData.serviceType)?.title}
-          </p>
-        </div>
-      )} */}
+      <div className="mt-8">
+        <label htmlFor="job-description" className="block text-base font-semibold text-gray-900 mb-2">
+          Description
+        </label>
+        <textarea
+          id="job-description"
+          value={formData.jobDescription}
+          onChange={(e) => onUpdateFormData("jobDescription", e.target.value)}
+          placeholder=""
+          rows={4}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary resize-none text-base"
+        />
+      </div>
     </div>
   )
 }
