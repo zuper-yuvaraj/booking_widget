@@ -80,8 +80,14 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   }, [])
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date)
-    const dateString = date.toISOString().split("T")[0]
+      setSelectedDate(date)
+      // const dateString = date.toISOString().split("T")[0]
+  const dateString = new Intl.DateTimeFormat("en-CA", {
+          timeZone: TIME_ZONE,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(date)
     onUpdateFormData("selectedDate", dateString)
     // Clear previous selections when date changes
     onUpdateFormData("selectedUser", "")
