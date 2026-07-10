@@ -278,7 +278,10 @@ const fetchAvailability = async (date: string) => {
         <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
         <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
         <p className="text-base md:text-lg text-gray-700 mt-4 font-medium">
-          Roof inspections generally take about an hour and a half.
+          Inspection generally take about an hour and a half.
+        </p>
+        <p className="text-base md:text-lg text-gray-700 mt-4 font-medium">
+          If the below slots don't work, please reach out to our office.
         </p>
       </div>
 
