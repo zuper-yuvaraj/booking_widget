@@ -23,8 +23,8 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center mb-8">
-        <div className="mx-auto w-12 h-12 mb-4 bg-green-100 rounded-full flex items-center justify-center">
-          <Wrench className="w-6 h-6 text-green-600" />
+        <div className="mx-auto w-12 h-12 mb-4 bg-[#3170c7]/15 rounded-full flex items-center justify-center">
+          <Wrench className="w-6 h-6 text-[#3170c7]" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900">Choose type of service</h2>
         <p className="text-gray-600 mt-2">Select the service you need</p>
@@ -43,14 +43,14 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
                 isSelected
                   ? service.color === "blue"
                     ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-green-500 bg-green-50 shadow-md"
+                    : "border-[#3170c7] bg-[#3170c7]/10 shadow-md"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
               {isSelected && (
                 <div
                   className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center ${
-                    service.color === "blue" ? "bg-blue-500" : "bg-green-500"
+                    service.color === "blue" ? "bg-blue-500" : "bg-[#3170c7]"
                   }`}
                 >
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -66,19 +66,19 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
               <div className="flex flex-col items-center text-center">
                 <div
                   className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                    isSelected ? (service.color === "blue" ? "bg-blue-100" : "bg-green-100") : "bg-gray-100"
+                    isSelected ? (service.color === "blue" ? "bg-blue-100" : "bg-[#3170c7]/15") : "bg-gray-100"
                   }`}
                 >
                   <Icon
                     className={`w-8 h-8 ${
-                      isSelected ? (service.color === "blue" ? "text-blue-600" : "text-green-600") : "text-gray-600"
+                      isSelected ? (service.color === "blue" ? "text-blue-600" : "text-[#3170c7]") : "text-gray-600"
                     }`}
                   />
                 </div>
 
                 <h3
                   className={`text-lg font-semibold mb-2 ${
-                    isSelected ? (service.color === "blue" ? "text-blue-900" : "text-green-900") : "text-gray-900"
+                    isSelected ? (service.color === "blue" ? "text-blue-900" : "text-[#3170c7]") : "text-gray-900"
                   }`}
                 >
                   {service.title}
@@ -86,7 +86,7 @@ export default function StepThree({ formData, onUpdateFormData }: StepProps) {
 
                 <p
                   className={`text-sm ${
-                    isSelected ? (service.color === "blue" ? "text-blue-700" : "text-green-700") : "text-gray-600"
+                    isSelected ? (service.color === "blue" ? "text-blue-700" : "text-[#3170c7]") : "text-gray-600"
                   }`}
                 >
                   {service.description}

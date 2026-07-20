@@ -17,12 +17,15 @@ export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
     serviceType: "",
+    selectedServices: [],
+    custom_fields: {},
     address: "",
     street: "",
     city: "",
@@ -41,7 +44,7 @@ export default function BookingWizard() {
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || COMPANY_UUID
 
-  const handleUpdateFormData = (field: keyof FormData, value: string | boolean) => {
+  const handleUpdateFormData = (field: keyof FormData, value: string | boolean | string[] | Record<string, string>) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -50,7 +53,7 @@ export default function BookingWizard() {
   }
 
   const isStep2Valid = () => {
-    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.serviceType)
+    const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.selectedServices.length > 0)
     const isPhoneValid = formData.phone ? isValidPhoneNumber(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
     const hasConsent = formData.marketingConsent === true
@@ -59,7 +62,7 @@ export default function BookingWizard() {
   }
 
   const isStep3Valid = () => {
-    return !!formData.serviceType
+    return formData.selectedServices.length > 0
   }
 
   const isStep4Valid = () => {
@@ -74,9 +77,24 @@ export default function BookingWizard() {
     }
   }
 
+  const handleContinue = () => {
+    if (currentStep === 1 && !isStep1Valid()) return
+    if (currentStep === 3 && !isStep3Valid()) return
+
+    if (currentStep === 2) {
+      setStep2ValidationAttempted(true)
+      if (!isStep2Valid()) return
+    }
+
+    nextStep()
+  }
+
   const prevStep = () => {
     if (currentStep === 4) {
       setCurrentStep(2)
+    } else if (currentStep === 2) {
+      setStep2ValidationAttempted(false)
+      setCurrentStep(1)
     } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
@@ -119,7 +137,7 @@ export default function BookingWizard() {
       case 1:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
       case 2:
-        return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+        return <StepTwo {...stepProps} isValid={isStep2Valid()} showValidationErrors={step2ValidationAttempted} />
       case 3:
         return <StepThree {...stepProps} isValid={isStep3Valid()} />
       case 4:
@@ -147,13 +165,13 @@ export default function BookingWizard() {
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+                        step <= currentStep ? "bg-[#3170c7] text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {step}
                     </div>
                     {step < 4 && (
-                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
+                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-[#3170c7]" : "bg-gray-200"}`} />
                     )}
                   </div>
                 ))}
@@ -180,15 +198,13 @@ export default function BookingWizard() {
 
               {currentStep < 4 ? (
                 <button
-                  onClick={nextStep}
+                  onClick={handleContinue}
                   disabled={
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
                     (currentStep === 3 && !isStep3Valid())
                   }
                   className={`flex items-center px-6 py-2 rounded-md transition-colors ${
                     (currentStep === 1 && !isStep1Valid()) ||
-                    (currentStep === 2 && !isStep2Valid()) ||
                     (currentStep === 3 && !isStep3Valid())
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/80"

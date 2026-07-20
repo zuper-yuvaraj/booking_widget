@@ -50,8 +50,11 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
       if (!response.ok) {
         throw new Error('Failed to fetch availability data')
       }
-      const data: ApiResponse = await response.json()
-      if(!data.success) {
+      const raw = await response.json()
+      const data: ApiResponse = Array.isArray(raw) ? raw[0] : raw
+      const isSuccess = data.success === true || data.type === "success"
+
+      if (!isSuccess) {
         throw new Error(data.message || 'Failed to fetch availability data')
       }
 
@@ -145,74 +148,88 @@ const formatDateOnly = (date: Date) => {
   // Helper function to transform API data to UserSlot format
   const transformApiDataToUserSlots = (): UserSlot[] => {
     if (!availabilityData?.data) return []
-    
-    const selectedDateData = availabilityData.data.availability.find(
-      (item) => item.date === formData.selectedDate
-    )
-    
-    if (!selectedDateData || selectedDateData.holiday || selectedDateData.slots.length === 0) {
-      return []
-    }
-
-    // Check if selected date is today
-    const today = new Date().toISOString().split('T')[0]
-    const isToday = formData.selectedDate === today
-    console.log("IS TODAY", isToday)
-    const currentTime = new Date()
-    const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000) // 1 hour from now
-
-    // Group slots by users with original slot data
-    const userSlotMap = new Map<string, { user: ApiUser; slots: Array<{ display: string; original: TimeSlot }> }>()
 
     const parseUTCDateTime = (dateTimeString: string) => {
-      // Convert "2025-07-14 14:00:00" to "2025-07-14T14:00:00Z"
-      return new Date(dateTimeString.replace(' ', 'T') + 'Z');
-    };
+      return new Date(dateTimeString.replace(' ', 'T') + 'Z')
+    }
 
-    selectedDateData.slots.forEach((slot: TimeSlot) => {
-      // Filter out slots that are less than 1 hour ahead if today
-      if (isToday) {
-        const slotStartTime = new Date(slot.start_time.replace(' ', 'T') + 'Z');
-        if (slotStartTime <= oneHourFromNow) {
-          return // Skip this slot
-        }
-      }
-      
-      
-
-      // Convert UTC to EST for UI display
-      const timeRange = `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
+    const formatTimeRange = (startTime: string, endTime: string) => {
+      return `${parseUTCDateTime(startTime).toLocaleTimeString('en-US', {
+        hour: 'numeric',
         minute: '2-digit',
         hour12: true,
         timeZone: TIME_ZONE
-      })} - ${parseUTCDateTime(slot.end_time).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
+      })} - ${parseUTCDateTime(endTime).toLocaleTimeString('en-US', {
+        hour: 'numeric',
         minute: '2-digit',
         hour12: true,
         timeZone: TIME_ZONE
       })}`
-      
-      slot.users.forEach((userId: string) => {
-        const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
-        if (user) {
-          if (!userSlotMap.has(userId)) {
-            userSlotMap.set(userId, { user, slots: [] })
-          }
-          userSlotMap.get(userId)!.slots.push({
-            display: timeRange,
-            original: slot
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const isToday = formData.selectedDate === today
+    const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000)
+    const userSlotMap = new Map<string, { user: ApiUser; slots: Array<{ display: string; original: TimeSlot }> }>()
+
+    const addSlotForUser = (user: ApiUser, slot: { start_time: string; end_time: string }, usersAvailable = 0) => {
+      if (isToday) {
+        const slotStartTime = parseUTCDateTime(slot.start_time)
+        if (slotStartTime <= oneHourFromNow) return
+      }
+
+      const timeRange = formatTimeRange(slot.start_time, slot.end_time)
+      if (!userSlotMap.has(user.user_uid)) {
+        userSlotMap.set(user.user_uid, { user, slots: [] })
+      }
+
+      userSlotMap.get(user.user_uid)!.slots.push({
+        display: timeRange,
+        original: {
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          users_available: usersAvailable,
+          users: [user.user_uid],
+        },
+      })
+    }
+
+    availabilityData.data.availability.forEach((availabilityItem) => {
+      if (availabilityItem.holiday) return
+
+      // New format: team availability with users and nested slots
+      if (availabilityItem.users?.length) {
+        availabilityItem.users.forEach((availabilityUser) => {
+          const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === availabilityUser.user_uid)
+          if (!user) return
+
+          availabilityUser.slots.forEach((slot) => {
+            addSlotForUser(user, slot, availabilityItem.users_available ?? 0)
           })
-        }
+        })
+        return
+      }
+
+      // Legacy format: date-based availability with slots containing user ids
+      if (availabilityItem.date && availabilityItem.date !== formData.selectedDate) return
+      if (!availabilityItem.slots?.length) return
+
+      availabilityItem.slots.forEach((slot: TimeSlot) => {
+        slot.users?.forEach((userId: string) => {
+          const user = availabilityData.data.users.find((u: ApiUser) => u.user_uid === userId)
+          if (user) {
+            addSlotForUser(user, slot, slot.users_available ?? 0)
+          }
+        })
       })
     })
 
     return Array.from(userSlotMap.values()).map(({ user, slots }) => ({
       id: user.user_uid,
       name: `${user.first_name} ${user.last_name}`,
-      avatar: user.profile_picture,
+      avatar: user.profile_picture || '',
       description: `${user.bio || ''}`,
-      slots: slots
+      slots,
     }))
   }
 
@@ -222,7 +239,7 @@ const formatDateOnly = (date: Date) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center mb-8">
-        <Calendar className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <Calendar className="mx-auto w-12 h-12 mb-4 text-[#3170c7]" />
         <h2 className="text-xl font-semibold text-gray-900">Select Date & Professional</h2>
         <p className="text-gray-600 mt-2">Choose your preferred date and professional</p>
       </div>
@@ -238,8 +255,8 @@ const formatDateOnly = (date: Date) => {
                 onClick={() => handleDateSelect(date)}
                 className={`p-3 text-center rounded-lg border transition-colors ${
                   isSelected
-                    ? "bg-primary text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                    ? "bg-primary text-white border-[#3170c7]"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-[#3170c7]/10 hover:border-[#3170c7]"
                 }`}
               >
                 <div className="text-xs font-medium">{formatDate(date)}</div>
@@ -259,7 +276,7 @@ const formatDateOnly = (date: Date) => {
           
           {loading && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3170c7] mx-auto"></div>
               <p className="text-gray-600 mt-2">Loading availability...</p>
             </div>
           )}
@@ -285,18 +302,22 @@ const formatDateOnly = (date: Date) => {
                     key={user.id}
                     className={`border rounded-lg p-4 transition-colors ${
                       isSelected
-                        ? "border-green-500 bg-green-50"
+                        ? "border-[#3170c7] bg-[#3170c7]/10"
                         : "border-gray-200 bg-white hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
+                        <div className="w-12 h-12 bg-[#3170c7]/15 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-6 h-6 text-[#3170c7]" />
+                          )}
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">{user.name}</h4>
@@ -308,7 +329,7 @@ const formatDateOnly = (date: Date) => {
                                   e.stopPropagation()
                                   toggleBioExpansion(user.id)
                                 }}
-                                className="text-green-600 hover:text-green-700 text-xs font-medium mt-1"
+                                className="text-[#3170c7] hover:text-[#3170c7]/80 text-xs font-medium mt-1"
                               >
                                 {expandedBios.has(user.id) ? 'View less' : 'View more'}
                               </button>
@@ -335,8 +356,8 @@ const formatDateOnly = (date: Date) => {
                               }}
                               className={`p-2 text-center rounded-md border text-sm transition-colors ${
                                 isSlotSelected
-                                  ? "bg-primary text-white border-green-400"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:border-green-300"
+                                  ? "bg-primary text-white border-[#3170c7]"
+                                  : "bg-white text-gray-700 border-gray-300 hover:bg-[#3170c7]/10 hover:border-[#3170c7]"
                               }`}
                             >
                               {slot.display }
@@ -354,9 +375,9 @@ const formatDateOnly = (date: Date) => {
       )}
 
       {formData.selectedSlot && selectedUser && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-green-900 mb-4">Booking Summary</h4>
-          <div className="space-y-2 text-sm text-green-800">
+        <div className="bg-[#fefbe6] border border-[#f3e7a3] rounded-lg p-6">
+          <h4 className="text-lg font-normal text-black mb-4">Booking Summary</h4>
+          <div className="space-y-2 text-sm text-black">
             <p>
               <strong>Name:</strong> {formData.firstName} {formData.lastName}
             </p>
@@ -370,7 +391,7 @@ const formatDateOnly = (date: Date) => {
               <strong>Address:</strong> {formData.address}
             </p>
             <p>
-              <strong>Service:</strong> <span className="capitalize">{formData.serviceType}</span>
+              <strong>Services:</strong> {formData.selectedServices.join(", ")}
             </p>
             <p>
               <strong>Date:</strong> {selectedDate && formatDate(selectedDate)}

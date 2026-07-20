@@ -1,7 +1,7 @@
 "use client"
 
-import { User } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { ChevronDown, User } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
@@ -9,25 +9,33 @@ import type { StepProps } from "@/types/booking"
 import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
 
 const SERVICE_OPTIONS = [
-  "Shingle Roof Install",
-  "Shingle Roof Repair",
-  "Metal Roof Install",
-  "Metall Roof Repair ",
-  "Commercial Roof Install",
-  "Commercial Roof Repairs",
-  "Gutter Division  ",
-  "General Contracting",
-  "Solar Division ",
+  "Commercial Roofing",
+  "Residential Roofing",
+  "Roof Inspections",
+  "Roof Insurance",
 ]
 
-export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
+export default function StepTwo({ formData, onUpdateFormData, onNext, isValid, showValidationErrors }: StepProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
+  const servicesDropdownRef = useRef<HTMLDivElement>(null)
+  const [isServicesOpen, setIsServicesOpen] = useState(false)
 
   // Auto-focus the first name input when component mounts
   useEffect(() => {
     if (firstNameInputRef.current) {
       firstNameInputRef.current.focus()
     }
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target as Node)) {
+        setIsServicesOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && isValid) {
@@ -46,10 +54,33 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
   const isEmailValid = formData.email ? isValidEmail(formData.email) : true
   const showEmailError = formData.email && !isEmailValid
 
+  const showServicesError = showValidationErrors && formData.selectedServices.length === 0
+
+  const updateSelectedServices = (updatedServices: string[]) => {
+    const servicesValue = updatedServices.join(", ")
+    onUpdateFormData("selectedServices", updatedServices)
+    onUpdateFormData("serviceType", servicesValue)
+    onUpdateFormData("custom_fields", { Services: servicesValue })
+  }
+
+  const handleServiceToggle = (service: string) => {
+    const isSelected = formData.selectedServices.includes(service)
+    const updatedServices = isSelected
+      ? formData.selectedServices.filter((s) => s !== service)
+      : [...formData.selectedServices, service]
+
+    updateSelectedServices(updatedServices)
+  }
+
+  const servicesDisplayText =
+    formData.selectedServices.length > 0
+      ? formData.selectedServices.join(", ")
+      : "Select services"
+
   return (
     <div className="max-w-md mx-auto space-y-6">
       <div className="text-center mb-8">
-        <User className="mx-auto w-12 h-12 mb-4 text-green-500" />
+        <User className="mx-auto w-12 h-12 mb-4 text-[#3170c7]" />
         <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
         <p className="text-gray-600 mt-2">Please provide your contact details</p>
       </div>
@@ -66,7 +97,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               value={formData.firstName}
               onChange={(e) => onUpdateFormData("firstName", e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3170c7] focus:border-[#3170c7]"
               placeholder="Enter your first name"
             />
           </div>
@@ -78,7 +109,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               value={formData.lastName}
               onChange={(e) => onUpdateFormData("lastName", e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3170c7] focus:border-[#3170c7]"
               placeholder="Enter your last name"
             />
           </div>
@@ -98,10 +129,10 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               onChange={handlePhoneChange}
               onKeyPress={handleKeyPress}
               placeholder="Enter your phone number"
-              className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 ${
+              className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-[#3170c7] ${
                 showPhoneError 
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                  : "border-gray-300 focus:ring-[#3170c7] focus:border-[#3170c7]"
               }`}
             />
             
@@ -122,10 +153,10 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
             value={formData.email}
             onChange={(e) => onUpdateFormData("email", e.target.value)}
             onKeyPress={handleKeyPress}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 ${
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-[#3170c7] ${
               showEmailError 
                 ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                : "border-gray-300 focus:ring-[#3170c7] focus:border-[#3170c7]"
             }`}
             placeholder="Enter your email address"
           />
@@ -136,31 +167,56 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           )}
         </div>
 
-        <div>
+        <div ref={servicesDropdownRef} className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Service <span className="text-red-500">*</span>
-            {/* the options are added above in the variable SERVICE_OPTIONS */}
-          
+            Services <span className="text-red-500">*</span>
           </label>
-          <select
-            value={formData.serviceType}
-            onChange={(e) => onUpdateFormData("serviceType", e.target.value)}
-            required
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:border-green-500 bg-white ${
-              !formData.serviceType
+          <button
+            type="button"
+            onClick={() => setIsServicesOpen((open) => !open)}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm bg-white text-left flex items-center justify-between gap-2 focus:ring-2 focus:border-[#3170c7] ${
+              showServicesError
                 ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                : "border-gray-300 focus:ring-[#3170c7] focus:border-[#3170c7]"
             }`}
           >
-            <option value="">Select a service</option>
-            {SERVICE_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          {!formData.serviceType && (
-            <p className="mt-1 text-sm text-red-600">Please select a service</p>
+            <span
+              className={`truncate ${
+                formData.selectedServices.length > 0 ? "text-gray-900" : "text-gray-500"
+              }`}
+            >
+              {servicesDisplayText}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${
+                isServicesOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {isServicesOpen && (
+            <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
+              <div className="max-h-48 overflow-y-auto py-1">
+                {SERVICE_OPTIONS.map((option) => (
+                  <label
+                    key={option}
+                    className="flex items-center gap-3 cursor-pointer px-3 py-2 hover:bg-gray-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.selectedServices.includes(option)}
+                      onChange={() => handleServiceToggle(option)}
+                      className="h-4 w-4 text-[#3170c7] focus:ring-[#3170c7] border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showServicesError && (
+            <p className="mt-1 text-sm text-red-600">Please select at least one service</p>
           )}
         </div>
 
@@ -171,7 +227,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               id="marketing-consent"
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
-              className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              className="mt-1 h-4 w-4 text-[#3170c7] focus:ring-[#3170c7] border-gray-300 rounded"
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
@@ -180,7 +236,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
                 href={TERMS_OF_SERVICE} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
+                className="text-[#3170c7] hover:text-[#3170c7]/80 underline"
               >
                 Terms of Service
               </a>{" "}
@@ -189,7 +245,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
                 href={PRIVACY_POLICY}
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-800 underline"
+                className="text-[#3170c7] hover:text-[#3170c7]/80 underline"
               >
                 Privacy Policy
               </a>

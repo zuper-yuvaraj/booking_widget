@@ -4,6 +4,8 @@ export interface FormData {
   phone: string
   email: string
   serviceType: string
+  selectedServices: string[]
+  custom_fields: Record<string, string>
   address: string
   street: string
   city: string
@@ -36,7 +38,7 @@ export interface ApiUser {
   email: string
   designation: string
   bio: string | ''
-  profile_picture: string
+  profile_picture: string | null
   hourly_labor_charge: number | null
   is_active: boolean
   role: {
@@ -49,20 +51,29 @@ export interface ApiUser {
 export interface TimeSlot {
   start_time: string
   end_time: string
-  users_available: number
-  users: string[]
+  users_available?: number
+  users?: string[]
+}
+
+export interface AvailabilityUserSlot {
+  user_uid: string
+  slots: Array<{ start_time: string; end_time: string }>
 }
 
 export interface AvailabilityData {
-  date: string
+  date?: string
   holiday: boolean
-  slots: TimeSlot[]
+  slots?: TimeSlot[]
+  team_name?: string
+  team_uid?: string
+  users?: AvailabilityUserSlot[]
+  users_available?: number
 }
 
 export interface ApiResponse {
-  type: string,
-  message?: string,
-  success?: boolean,
+  type?: string
+  message?: string
+  success?: boolean
   data: {
     availability: AvailabilityData[]
     users: ApiUser[]
@@ -80,8 +91,9 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: string | boolean | string[] | Record<string, string>) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean
+  showValidationErrors?: boolean
 }
