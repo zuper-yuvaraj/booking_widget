@@ -37,17 +37,19 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
+    isServiceAreaValid: false,
+    serviceAreaMessage: "",
   })
 
   const searchParams = useQueryParams();
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
-  const handleUpdateFormData = (field: keyof FormData, value: string) => {
+  const handleUpdateFormData = (field: keyof FormData, value: FormData[keyof FormData]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const isStep1Valid = () => {
-    return !!formData.address
+    return !!formData.address && formData.isServiceAreaValid === true
   }
 
   const isStep2Valid = () => {
@@ -86,14 +88,17 @@ export default function BookingWizard() {
     }
   }
 
-  const buildBookingPayload = () => ({
-    ...formData,
-    custom_fields: {
-      "Service chosen": getServiceTitle(formData.serviceType),
-      "Description": formData.jobDescription,
-    },
-    job_description: formData.jobDescription,
-  })
+  const buildBookingPayload = () => {
+    const { isServiceAreaValid, serviceAreaMessage, ...rest } = formData
+    return {
+      ...rest,
+      custom_fields: {
+        "Service chosen": getServiceTitle(formData.serviceType),
+        "Description": formData.jobDescription,
+      },
+      job_description: formData.jobDescription,
+    }
+  }
 
   const handleSubmit = async () => {
     setIsSubmitting(true)

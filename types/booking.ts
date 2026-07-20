@@ -19,6 +19,8 @@ export interface FormData {
   end_time: string
   selectedUser: string
   marketingConsent?: boolean
+  isServiceAreaValid: boolean
+  serviceAreaMessage: string
 }
 
 export interface UserSlot {
@@ -82,7 +84,7 @@ export interface GoogleMapsPrediction {
 
 export interface StepProps {
   formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string | boolean) => void
+  onUpdateFormData: (field: keyof FormData, value: FormData[keyof FormData]) => void
   onNext: () => void
   onPrev: () => void
   isValid: boolean

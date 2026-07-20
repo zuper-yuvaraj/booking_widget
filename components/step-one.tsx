@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import { MapPin } from "lucide-react"
 import type { StepProps, GoogleMapsPrediction } from "@/types/booking"
 import { useGoogleMaps } from "@/hooks/use-google-maps"
+import { GET_SERVICES_WEBHOOK } from "@/configs"
+import { useQueryParams } from "@/hooks/query-params.hooks"
 
 // Extend Window interface to include Google Maps
 declare global {
@@ -20,8 +22,12 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
   const [marker, setMarker] = useState<any>(null)
   const [autocompleteService, setAutocompleteService] = useState<any>(null)
   const [placesService, setPlacesService] = useState<any>(null)
+  const [isCheckingService, setIsCheckingService] = useState(false)
   const mapRef = useRef<HTMLDivElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
+
+  const searchParams = useQueryParams()
+  const COMPANY_UID = searchParams.get("company_uid") || ""
 
   const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyB_LDXpb58SXx4I4dp0UVhKb1mJGqkDn8w"
   const { isLoaded, loadError } = useGoogleMaps({
@@ -190,19 +196,51 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
 
         const addressComponents = parseAddressComponents(place)
 
+        const lat = place.geometry.location.lat().toString()
+        const lng = place.geometry.location.lng().toString()
+
         setSearchValue(place.formatted_address)
         onUpdateFormData("address", place.formatted_address)
         onUpdateFormData("street", addressComponents.street)
         onUpdateFormData("city", addressComponents.city)
         onUpdateFormData("state", addressComponents.state)
         onUpdateFormData("zipcode", addressComponents.zipcode)
-        onUpdateFormData("latitude", place.geometry.location.lat().toString())
-        onUpdateFormData("longitude", place.geometry.location.lng().toString())
- 
+        onUpdateFormData("latitude", lat)
+        onUpdateFormData("longitude", lng)
+
         map.setCenter(place.geometry.location)
         map.setZoom(20)
 
         setShowPredictions(false)
+        onUpdateFormData("isServiceAreaValid", false)
+        onUpdateFormData("serviceAreaMessage", "")
+
+        // Check service territory
+        setIsCheckingService(true)
+        const params = new URLSearchParams({
+          company_uid: COMPANY_UID,
+          latitude: lat,
+          longitude: lng,
+          zipcode: addressComponents.zipcode,
+        })
+        fetch(`${GET_SERVICES_WEBHOOK}?${params.toString()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const valid = data.isValid === true
+            const msg = valid
+              ? "Within the service territory"
+              : (data.message || "Service territory not found")
+            onUpdateFormData("isServiceAreaValid", valid)
+            onUpdateFormData("serviceAreaMessage", msg)
+          })
+          .catch(() => {
+            const msg = "Failed to verify service territory. Please try again."
+            onUpdateFormData("isServiceAreaValid", false)
+            onUpdateFormData("serviceAreaMessage", msg)
+          })
+          .finally(() => {
+            setIsCheckingService(false)
+          })
       }
     })
   }
@@ -267,9 +305,36 @@ export default function StepOne({ formData, onUpdateFormData }: StepProps) {
         </div>
       </div>
 
+      {isCheckingService && (
+        <p className="text-sm text-gray-500 text-center">Checking service availability...</p>
+      )}
+
       {formData.address && (
-        <div className="p-4 bg-primary/5 border border-primary/30 rounded-lg">
-          <p className="text-sm text-primary">
+        <div
+          className={`p-4 rounded-lg border ${
+            formData.serviceAreaMessage && !formData.isServiceAreaValid
+              ? "bg-red-50 border-red-200"
+              : "bg-primary/5 border-primary/30"
+          }`}
+        >
+          {!isCheckingService && formData.serviceAreaMessage && (
+            <p
+              className={`text-sm font-medium mb-2 ${
+                formData.isServiceAreaValid ? "text-primary" : "text-red-700"
+              }`}
+            >
+              {formData.isServiceAreaValid
+                ? formData.serviceAreaMessage
+                : "Service territory not found"}
+            </p>
+          )}
+          <p
+            className={`text-sm ${
+              formData.serviceAreaMessage && !formData.isServiceAreaValid
+                ? "text-red-800"
+                : "text-primary"
+            }`}
+          >
             <MapPin className="inline w-4 h-4 mr-1" />
             Selected: {formData.address}
           </p>
