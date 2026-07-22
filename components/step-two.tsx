@@ -192,14 +192,14 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              By checking this box, you consent to receive SMS messages from {COMPANY_NAME}, related to your inquiry and services, including appointment reminders, project updates, payment links, receipts, and care-related notifications. Message frequency may vary. Message and data rates may apply. Text HELP for assistance. Reply STOP to opt out. Consent is not a condition of purchase. See our {" "}
               <a
                 href={TERMS_OF_SERVICE}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"
               >
-                Terms of Service
+                Terms & Conditions
               </a>{" "}
               and{" "}
               <a
