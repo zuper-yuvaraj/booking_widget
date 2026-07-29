@@ -40,9 +40,10 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
   today.setHours(0, 0, 0, 0)
 
   const dates: Date[] = []
-  let i = 0
+  // Start from day after tomorrow (24hr+ buffer — skip today and tomorrow)
+  let i = 2
 
-  while (i < 30) {
+  while (dates.length < 30) {
     const d = new Date(today)
     d.setDate(today.getDate() + i)
     
