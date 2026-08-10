@@ -9,4 +9,3 @@ export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/fd1f9
 export const COMPANY_ID = "f94a40d8-480b-4b40-9519-5d0740f74874" // Company UID
 
 export const Timezone = "America/Los_Angeles" // Company Timezone
-
