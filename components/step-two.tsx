@@ -330,12 +330,18 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
               className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-             By submitting this form and signing up for texts, you consent to receive text messages from Restoration Roofing at the number provided, including messages sent by autodialer. Consent is not a condition of purchase. Msg & data rates may apply. Msg frequency varies. Unsubscribe at any time by replying STOP or clicking the unsubscribe link (where available) and no further messages will be sent. Reply HELP for help. Information will not be shared with third parties. View our{" "}
-              
-              
+              By checking this box, I agree to receive text messages from Maven Roofing related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
+              <a
+                href={TERMS_OF_SERVICE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-800 underline"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
               <a
                 href={PRIVACY_POLICY}
                 target="_blank"
