@@ -6,7 +6,7 @@ import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail, mmddyyyyToISO, isoToMMDDYYYY } from "@/lib/utils"
 import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
+import { PRIVACY_POLICY, TERMS_OF_SERVICE } from "@/configs"
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
 const labelClass = "block text-sm font-medium text-gray-700 mb-2"
@@ -167,10 +167,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
               className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              By checking this box, I agree to receive text messages from Maven Roofing related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
               <a
                 href={TERMS_OF_SERVICE}
                 target="_blank"
