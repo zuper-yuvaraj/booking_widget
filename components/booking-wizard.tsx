@@ -63,9 +63,7 @@ export default function BookingWizard() {
       ? isValidEmail(formData.email.trim())
       : false
 
-    const consentGiven = formData.marketingConsent === true
-
-    return hasRequiredFields && phoneValid && emailValid && consentGiven
+    return hasRequiredFields && phoneValid && emailValid
   }
 
   const handleSubmit = async () => {
