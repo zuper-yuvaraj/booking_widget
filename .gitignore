@@ -15,7 +15,8 @@
 
 # next.js
 /.next/
-/out/
+/out_ironhead_roofing/
+/out_eliteroofing/
 
 # production
 /build
