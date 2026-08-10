@@ -132,10 +132,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
               className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              I agree to be contacted by Honest Fix by phone call, text message, and email about my service request, including scheduling, technician arrival updates, exact quotes, and follow-up. Message frequency varies. Message and data rates may apply. Reply HELP for support. No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out of texts.View our{" "}
+              By checking this box, I agree to receive text messages from {COMPANY_NAME} related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
               <a 
                 href={TERMS_OF_SERVICE} 
                 target="_blank" 
