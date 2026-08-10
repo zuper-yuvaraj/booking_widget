@@ -192,14 +192,14 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By checking this box, you consent to receive SMS messages from {COMPANY_NAME}, related to your inquiry and services, including appointment reminders, project updates, payment links, receipts, and care-related notifications. Message frequency may vary. Message and data rates may apply. Text HELP for assistance. Reply STOP to opt out. Consent is not a condition of purchase. See our {" "}
+              By checking this box, I agree to receive text messages from {COMPANY_NAME} related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
               <a
                 href={TERMS_OF_SERVICE}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"
               >
-                Terms & Conditions
+                Terms of Service
               </a>{" "}
               and{" "}
               <a
