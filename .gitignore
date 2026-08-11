@@ -16,6 +16,10 @@
 # next.js
 /.next/
 /out/
+/out_roof_raiders/
+/out_eliteroofing/
+/out_ironheadroofing/
+/out_vivid_roof/
 
 # production
 /build
