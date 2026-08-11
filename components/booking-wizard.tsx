@@ -62,9 +62,8 @@ export default function BookingWizard() {
     const hasRequiredFields = !!(formData.firstName && formData.phone && formData.email && formData.preferredDate)
     const isPhoneValid = formData.phone ? isValidUsPhone(formData.phone) : false
     const isEmailValid = formData.email ? isValidEmail(formData.email) : false
-    const hasConsent = formData.marketingConsent === true
 
-    return hasRequiredFields && isPhoneValid && isEmailValid && hasConsent
+    return hasRequiredFields && isPhoneValid && isEmailValid
   }
 
   const isStep3Valid = () => {
