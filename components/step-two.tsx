@@ -264,7 +264,7 @@ export default function StepTwo({
             />
 
              <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By checking this box, I agree to receive text messages from Maven Roofing related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
+              By checking this box, I agree to receive text messages from Triumph Roofing related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
               <a 
                 href={TERMS_OF_SERVICE} 
                 target="_blank" 
