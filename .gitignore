@@ -17,6 +17,9 @@
 /.next/
 /out/
 /out_vivid_roof/
+/out_eliteroofing/
+/out_ironheadroofing/
+
 # production
 /build
 
