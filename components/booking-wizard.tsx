@@ -73,9 +73,7 @@ export default function BookingWizard() {
       ? isValidEmail(formData.email)
       : false
 
-    const consentGiven = formData.marketingConsent === true
-
-    return required && phoneValid && emailValid && consentGiven
+    return required && phoneValid && emailValid
   }
 
   /* ---------------- NAVIGATION ---------------- */

@@ -38,7 +38,6 @@ export default function StepTwo({
 
   const canProceed =
     isValid &&
-    formData.marketingConsent === true &&
     isPhoneValid &&
     isEmailValid
 
