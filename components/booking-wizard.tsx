@@ -91,13 +91,10 @@ export default function BookingWizard() {
         body: JSON.stringify({
           ...formData,
           company_uid: COMPANY_UID,
-          selectedDate: formData.selectedDate
-            ? (() => {
-                const [y, m, d] = formData.selectedDate.split("-").map(Number)
-                const nextDate = new Date(Date.UTC(y, m - 1, d + 1))
-                return nextDate.toISOString().split("T")[0]
-              })()
-            : formData.selectedDate,
+          // formData.selectedDate is already the Chicago-local date the
+          // customer picked (see formatDateForInput in step-four.tsx) —
+          // send it as-is, don't shift it.
+          selectedDate: formData.selectedDate,
         }),
       })
 

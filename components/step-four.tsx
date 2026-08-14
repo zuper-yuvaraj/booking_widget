@@ -61,14 +61,8 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     setLoading(true)
     setError(null)
     try {
-      const incrementedDate = (() => {
-        const [y, m, d] = date.split("-").map(Number)
-        const nextDate = new Date(Date.UTC(y, m - 1, d + 1))
-        return nextDate.toISOString().split("T")[0]
-      })()
-
       const params = new URLSearchParams({
-      date: incrementedDate,
+      date: date,
       serviceType: formData.serviceType,
       company_uid: COMPANY_UID,
       latitude: formData.latitude || "",
@@ -184,27 +178,17 @@ export default function StepFour({ formData, onUpdateFormData }: StepProps) {
     if (!availabilityData?.data) return []
     console.log("formData.selectedDate ", formData.selectedDate)
 
-    // The availability API call uses date + 1 day (see `fetchAvailability`),
-    // so we must look up the returned availability using the same adjusted date.
-    const selectedDateForApi = formData.selectedDate
-      ? (() => {
-          const [y, m, d] = formData.selectedDate.split("-").map(Number)
-          const nextDate = new Date(Date.UTC(y, m - 1, d + 1))
-          return nextDate.toISOString().split("T")[0]
-        })()
-      : formData.selectedDate
-
     const selectedDateData = availabilityData.data.availability.find(
-      (item : any) => item.date === selectedDateForApi
+      (item : any) => item.date === formData.selectedDate
     )
-    
+
     if (!selectedDateData || selectedDateData.holiday || selectedDateData.slots.length === 0) {
       return []
     }
 
     // Check if selected date is today
     const today = new Date().toISOString().split('T')[0]
-    const isToday = selectedDateForApi === today
+    const isToday = formData.selectedDate === today
     console.log("IS TODAY", isToday)
     const currentTime = new Date()
     const oneHourFromNow = new Date(currentTime.getTime() + 60 * 60 * 1000) // 1 hour from now
