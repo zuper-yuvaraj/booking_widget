@@ -24,7 +24,7 @@ export default function BookingWizard() {
     phone: "",
     email: "",
     company_uid: COMPANY_UID,
-    serviceType: "lead_qualification",
+    serviceType: "repair",
     address: "",
     street: "",
     city: "",
@@ -75,9 +75,9 @@ export default function BookingWizard() {
       ? isValidEmail(formData.email)
       : false
 
-    const consentGiven = formData.marketingConsent === true
+    //const consentGiven = formData.marketingConsent === true
 
-    return required && phoneValid && emailValid && consentGiven
+    return required && phoneValid && emailValid 
   }
 
   /* ---------------- NAVIGATION ---------------- */

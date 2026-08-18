@@ -1,8 +1,8 @@
-export const COMPANY_NAME = "Booking Widget" // Company name
+export const COMPANY_NAME = "Thermoverra" // Company name
 
-export const PRIVACY_POLICY = 'https://www.zuper.co/privacy-policy' // Company privacy policy url
-export const TERMS_OF_SERVICE = 'https://www.zuper.co/terms-conditions' // Company terms and conditions url
+export const PRIVACY_POLICY = 'https://www.thermoverra.com/privacy-policy' // Company privacy policy url
+export const TERMS_OF_SERVICE = 'https://www.thermoverra.com/service-terms' // Company terms and conditions url
 
-export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/c69bab43-ceb0-46e8-8f92-6e7fbcc5e01c"; // Webhook URL to create booking
-export const COMPANY_UID = "c6dcd594-a537-4fae-b7b2-fcf77c722c8c"; // Company UID
+export const CREATE_BOOKING_WEBHOOK = "https://internalwf.zuper.co/webhook/6f72cc7c-bc56-453b-83fb-56977127d01b"; // Webhook URL to create booking
+export const COMPANY_UID = "6b21cd31-807c-498b-8b81-d6d0281f16da"; // Company UID
 export const timezone = "America/Los_Angeles"; // Company Timezone
