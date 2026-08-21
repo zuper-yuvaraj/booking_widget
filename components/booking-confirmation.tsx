@@ -21,13 +21,15 @@ export default function BookingConfirmation({
 
     if (isNaN(date.getTime())) return "Invalid Date"
 
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: timezone,
-    })
+    // mm-dd-yyyy
+    return date
+      .toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: timezone,
+      })
+      .replace(/\//g, "-")
   }
 
   /* ---------------- TIME FORMAT ---------------- */
