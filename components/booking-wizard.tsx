@@ -74,6 +74,18 @@ export default function BookingWizard() {
 
   const prevStep = () => {
     if (currentStep > 1) {
+      // Leaving step 4 -> discard the date/slot selection so the user
+      // re-picks it when they come back
+      if (currentStep === 4) {
+        setFormData((prev) => ({
+          ...prev,
+          selectedDate: "",
+          selectedSlot: "",
+          selectedUser: "",
+          start_time: "",
+          end_time: "",
+        }))
+      }
       setCurrentStep(currentStep - 1)
     }
   }
