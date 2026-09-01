@@ -1,12 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export function useQueryParams() {
-  const [params, setParams] = useState<URLSearchParams>(new URLSearchParams());
-
-  useEffect(() => {
-    setParams(new URLSearchParams(window.location.search));
-  }, []);
+  const [params] = useState<URLSearchParams>(() =>
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
+  );
 
   return params;
 }

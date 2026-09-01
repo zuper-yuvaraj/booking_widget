@@ -5,25 +5,18 @@ import { useEffect, useRef, useState } from "react"
 import PhoneInput from "react-phone-number-input/input"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { isValidEmail } from "@/lib/utils"
-import type { StepProps } from "@/types/booking"
-import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE, ASSISTED_SCHEDULING_WEBHOOK, CREATE_BOOKING_WEBHOOK, COMPANY_UUID, TIME_ZONE } from "@/configs"
+import type { StepProps, TradeTypesResponse } from "@/types/booking"
+import { COMPANY_NAME, PRIVACY_POLICY, TERMS_OF_SERVICE, ASSISTED_SCHEDULING_WEBHOOK, CREATE_BOOKING_WEBHOOK, COMPANY_UUID, TIME_ZONE, TRADE_TYPE_WEBHOOK } from "@/configs"
 import { useQueryParams } from "@/hooks/query-params.hooks"
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
 const labelClass = "block text-sm font-medium text-gray-700 mb-2"
 
-const SERVICE_OPTIONS = [
-  "Emergency Roof Repair",
-  "Roof Repair",
-  "Roof Replacement",
-  "Roof Maintenance",
-  "Roof Installation",
-]
-
 interface SlotOption {
   display: string
   start_time: string
   end_time: string
+  users: string[]
 }
 
 export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }: StepProps) {
@@ -33,6 +26,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
   const [slots, setSlots] = useState<SlotOption[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotError, setSlotError] = useState<string | null>(null)
+  const [serviceOptions, setServiceOptions] = useState<string[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
+  const [serviceError, setServiceError] = useState<string | null>(null)
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedSlotRaw, setSelectedSlotRaw] = useState<{ start_time: string; end_time: string } | null>(null)
@@ -46,6 +42,26 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
       firstNameInputRef.current.focus()
     }
   }, [])
+
+  useEffect(() => {
+    const fetchTradeTypes = async () => {
+      setLoadingServices(true)
+      setServiceError(null)
+      try {
+        const response = await fetch(`${TRADE_TYPE_WEBHOOK}?company_uid=${COMPANY_UID}`)
+        if (response.status !== 200) throw new Error('Failed to fetch services')
+
+        const data: TradeTypesResponse = await response.json()
+        setServiceOptions(Array.isArray(data.data) ? data.data : [])
+      } catch (err) {
+        setServiceError(err instanceof Error ? err.message : 'An error occurred')
+        setServiceOptions([])
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchTradeTypes()
+  }, [COMPANY_UID])
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && isValid) {
@@ -137,6 +153,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
     setSlotError(null)
     setSlots([])
     onUpdateFormData("preferredTimeSlot", "")
+    onUpdateFormData("selectedUser", "")
 
     try {
       const response = await fetch(`${ASSISTED_SCHEDULING_WEBHOOK}?date=${date}&company_uid=${COMPANY_UID}`)
@@ -160,7 +177,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           const slotStart = parseUTCDateTime(slot.start_time)
           return slotStart > oneHourFromNow
         })
-        .map((slot: { start_time: string; end_time: string }) => ({
+        .map((slot: { start_time: string; end_time: string; users?: string[] }) => ({
           display: `${parseUTCDateTime(slot.start_time).toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
@@ -174,6 +191,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           })}`,
           start_time: slot.start_time,
           end_time: slot.end_time,
+          users: slot.users || [],
         }))
 
       setSlots(slotOptions)
@@ -339,6 +357,7 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
                   const selected = slots.find((s) => s.display === e.target.value) || null
                   setSelectedSlotRaw(selected ? { start_time: selected.start_time, end_time: selected.end_time } : null)
                   onUpdateFormData("preferredTimeSlot", e.target.value)
+                  onUpdateFormData("selectedUser", selected?.users?.[0] || "")
                 }}
                 className={inputClass}
               >
@@ -368,7 +387,13 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
           </button>
           {serviceDropdownOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-              {SERVICE_OPTIONS.map((option) => (
+              {loadingServices && (
+                <div className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                  <span>Loading services...</span>
+                </div>
+              )}
+              {!loadingServices && serviceOptions.map((option) => (
                 <label key={option} className="flex items-center px-3 py-2 hover:bg-green-50 cursor-pointer text-sm">
                   <input
                     type="checkbox"
@@ -381,6 +406,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               ))}
             </div>
           )}
+          {serviceError && (
+            <p className="mt-1 text-sm text-red-600">{serviceError}</p>
+          )}
         </div>
 
         {/* Consent */}
@@ -392,10 +420,9 @@ export default function StepTwo({ formData, onUpdateFormData, onNext, isValid }:
               checked={formData.marketingConsent || false}
               onChange={(e) => onUpdateFormData("marketingConsent", e.target.checked)}
               className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-              required
             />
             <label htmlFor="marketing-consent" className="text-sm text-gray-700 leading-relaxed">
-              By submitting your phone number, you agree to receive marketing text messages from {COMPANY_NAME}. Message frequency varies. Message and data rates may apply. Text HELP for Support. Text STOP to opt-out. View our{" "}
+              By checking this box, I agree to receive text messages from {COMPANY_NAME} related to service appointment updates, account notifications, and customer care communications at the phone number provided above. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for assistance. I understand that consent is not a condition of purchase. View our{" "}
               <a
                 href={TERMS_OF_SERVICE}
                 target="_blank"

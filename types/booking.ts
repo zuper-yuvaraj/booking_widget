@@ -73,6 +73,12 @@ export interface ApiResponse {
   }
 }
 
+export interface TradeTypesResponse {
+  data: string[]
+  message?: string
+  status?: number
+}
+
 export interface GoogleMapsPrediction {
   place_id: string
   description: string
