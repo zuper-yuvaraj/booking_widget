@@ -16,6 +16,15 @@
 # next.js
 /.next/
 /out/
+/out_ferguson_and_melvin_roofing/
+/out_vivid_roof/
+/out_eliteroofing/
+/out_thermoverra/
+/out_roof_raiders/
+/out_ironhead_roofing/
+/out_bergens_roofing/
+/out_ac_inc_roofing/
+/out_superior_roofing/
 
 # production
 /build
