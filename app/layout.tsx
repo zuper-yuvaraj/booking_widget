@@ -27,13 +27,17 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=AW-652527712"
           strategy="afterInteractive"
         />
+
         <Script id="gtag-init" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             window.gtag = gtag;
+
             gtag('js', new Date());
+
             gtag('config', 'AW-652527712');
+            gtag('config', 'AW-18144113901');
           `}
         </Script>
       </head>

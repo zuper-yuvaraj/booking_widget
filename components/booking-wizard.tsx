@@ -16,6 +16,7 @@ export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -35,28 +36,41 @@ export default function BookingWizard() {
     selectedUser: "",
     start_time: "",
     end_time: "",
-    //marketingConsent: false,
+    // marketingConsent: false,
   })
 
-  const searchParams = useQueryParams();
+  const searchParams = useQueryParams()
   const COMPANY_UID = searchParams.get("company_uid") || ""
 
-  const handleUpdateFormData = (field: keyof FormData, value: FormData[keyof FormData]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const handleUpdateFormData = (
+    field: keyof FormData,
+    value: FormData[keyof FormData]
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
   // Step 1 validation (Personal Information)
   const isStep1Valid = () => {
-    if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.phone ||
+      !formData.email
+    ) {
       return false
     }
 
     const isPhoneValid = isValidPhoneNumber(formData.phone)
+
     if (!isPhoneValid) {
       return false
     }
 
     const isEmailValid = isValidEmail(formData.email)
+
     if (!isEmailValid) {
       return false
     }
@@ -66,7 +80,11 @@ export default function BookingWizard() {
 
   // Step 2 validation (Address)
   const isStep2Valid = () => {
-    return formData.address !== "" && formData.latitude !== "" && formData.longitude !== ""
+    return (
+      formData.address !== "" &&
+      formData.latitude !== "" &&
+      formData.longitude !== ""
+    )
   }
 
   // Step 3 validation (Services and Date)
@@ -74,8 +92,7 @@ export default function BookingWizard() {
     return (
       Array.isArray(formData.serviceType) &&
       formData.serviceType.length > 0 &&
-      formData.selectedDate !== "" 
-      
+      formData.selectedDate !== ""
     )
   }
 
@@ -84,9 +101,11 @@ export default function BookingWizard() {
     if (currentStep === 1 && !isStep1Valid()) {
       return
     }
+
     if (currentStep === 2 && !isStep2Valid()) {
       return
     }
+
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     }
@@ -100,34 +119,57 @@ export default function BookingWizard() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-    try {
-      const response = await fetch(`${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
-      
-      if (!response.ok) {
-        console.error('Failed to submit booking:', response.status, response.statusText)
-      } else {
-        console.log('Booking submitted successfully')
 
-        if (typeof window !== "undefined" && window.gtag) {
-        window.gtag('event', 'conversion', {
-          send_to: 'AW-652527712/2bfTCL-6uY0cEOCQk7cC',
+    try {
+      const response = await fetch(
+        `${CREATE_BOOKING_WEBHOOK}?company_uid=${COMPANY_UID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      )
+
+      if (!response.ok) {
+        console.error(
+          "Failed to submit booking:",
+          response.status,
+          response.statusText
+        )
+        return
+      }
+
+      console.log("Booking submitted successfully")
+
+      // Fire both Google Ads conversion tags
+      if (typeof window !== "undefined" && window.gtag) {
+        // Existing Google Ads conversion
+        window.gtag("event", "conversion", {
+          send_to: "AW-652527712/2bfTCL-6uY0cEOCQk7cC",
           value: 1.0,
-          currency: 'USD'
-        });
+          currency: "USD",
+        })
+
+        // New Google Ads conversion
+        window.gtag("event", "conversion", {
+          send_to: "AW-18144113901/ES0vCP_04OIcEO3p5MtD",
+          value: 1.0,
+          currency: "USD",
+        })
+
+        console.log("Both Google Ads conversion events triggered")
+      } else {
+        console.warn("Google gtag is not available")
       }
-       setIsBookingConfirmed(true)
-      }
+
+      // Show confirmation only after successful booking
+      setIsBookingConfirmed(true)
     } catch (error) {
-      console.error('Error submitting booking:', error)
+      console.error("Error submitting booking:", error)
     } finally {
       setIsSubmitting(false)
-      
     }
   }
 
@@ -143,10 +185,13 @@ export default function BookingWizard() {
     switch (currentStep) {
       case 1:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
+
       case 2:
         return <StepTwo {...stepProps} isValid={isStep2Valid()} />
+
       case 3:
         return <StepThree {...stepProps} isValid={isStep3Valid()} />
+
       default:
         return <StepOne {...stepProps} isValid={isStep1Valid()} />
     }
@@ -159,8 +204,13 @@ export default function BookingWizard() {
           {/* Header */}
           <div className="bg-white border-b border-gray-200 px-6 py-4 hidden">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-semibold text-gray-900">Book your free inspection</h1>
-              <div className="text-sm text-gray-500">Step {currentStep} of 3</div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Book your free inspection
+              </h1>
+
+              <div className="text-sm text-gray-500">
+                Step {currentStep} of 3
+              </div>
             </div>
 
             {/* Progress Bar */}
@@ -170,13 +220,22 @@ export default function BookingWizard() {
                   <div key={step} className="flex items-center">
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step <= currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+                        step <= currentStep
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {step}
                     </div>
+
                     {step < 3 && (
-                      <div className={`flex-1 h-1 mx-2 ${step < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
+                      <div
+                        className={`flex-1 h-1 mx-2 ${
+                          step < currentStep
+                            ? "bg-green-500"
+                            : "bg-gray-200"
+                        }`}
+                      />
                     )}
                   </div>
                 ))}
@@ -185,7 +244,9 @@ export default function BookingWizard() {
           </div>
 
           {/* Step Content */}
-          <div className="px-6 py-8">{renderCurrentStep()}</div>
+          <div className="px-6 py-8">
+            {renderCurrentStep()}
+          </div>
 
           {/* Navigation Buttons */}
           <div className="border-t border-gray-200 px-6 py-4">
@@ -195,7 +256,9 @@ export default function BookingWizard() {
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center px-4 py-2 rounded-md transition-colors ${
-                  currentStep === 1 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
+                  currentStep === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
