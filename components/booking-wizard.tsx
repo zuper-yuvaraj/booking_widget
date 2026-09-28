@@ -153,13 +153,13 @@ export default function BookingWizard() {
         })
 
         // New Google Ads conversion
-        window.gtag("event", "conversion", {
-          send_to: "AW-18144113901/ES0vCP_04OIcEO3p5MtD",
-          value: 1.0,
-          currency: "USD",
-        })
+        // window.gtag("event", "conversion", {
+        //   send_to: "AW-18144113901/ES0vCP_04OIcEO3p5MtD",
+        //   value: 1.0,
+        //   currency: "USD",
+        // })
 
-        console.log("Both Google Ads conversion events triggered")
+        // console.log("Both Google Ads conversion events triggered")
       } else {
         console.warn("Google gtag is not available")
       }
